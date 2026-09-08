@@ -1,0 +1,64 @@
+@use '@oblique/oblique/styles/scss/core/variables' as ob;
+
+.about-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 20rem;
+	gap: ob.$ob-spacing-lg;
+	align-items: start;
+
+	@media (max-width: 1099px) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.about-main,
+.about-figures {
+	padding: ob.$ob-spacing-default ob.$ob-spacing-lg ob.$ob-spacing-lg;
+}
+
+.about-lead {
+	max-width: 68ch;
+	font-size: 1.0625rem;
+	line-height: 1.6;
+}
+
+.about-iri {
+	word-break: break-all;
+	font-size: 0.875rem;
+}
+
+.about-notes {
+	max-width: 78ch;
+	padding-left: 1.125rem;
+
+	li {
+		margin-bottom: ob.$ob-spacing-sm;
+		line-height: 1.6;
+	}
+}
+
+.about-figure-list {
+	display: grid;
+	gap: ob.$ob-spacing-md;
+	margin: 0;
+
+	div {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: ob.$ob-spacing-sm;
+		padding-bottom: ob.$ob-spacing-xs;
+		border-bottom: var(--app-border);
+	}
+
+	dt {
+		font-size: 0.875rem;
+		color: var(--app-text-muted);
+	}
+
+	dd {
+		margin: 0;
+		font-size: 1.25rem;
+		font-weight: 700;
+	}
+}

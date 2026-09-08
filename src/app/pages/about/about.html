@@ -1,0 +1,44 @@
+<div class="app-page about">
+	<header class="app-page-header">
+		<div>
+			<h1>{{ 'about.title' | translate }}</h1>
+		</div>
+	</header>
+
+	<div class="about-layout">
+		<section class="about-main app-surface">
+			<p class="about-lead">{{ 'about.lead' | translate }}</p>
+
+			<h2 class="app-section-title">{{ 'common.dataSource' | translate }}</h2>
+			<dl class="app-definition-list">
+				<div>
+					<dt>{{ 'about.endpoint' | translate }}</dt>
+					<dd><a [href]="endpoint" target="_blank" rel="noopener">{{ endpoint }}</a></dd>
+				</div>
+				<div>
+					<dt>{{ 'about.graph' | translate }}</dt>
+					<dd class="about-iri">{{ graph }}</dd>
+				</div>
+			</dl>
+
+			<h2 class="app-section-title">{{ 'about.notes' | translate }}</h2>
+			<ul class="about-notes">
+				@for (note of notes; track note) {
+					<li>{{ note | translate }}</li>
+				}
+			</ul>
+		</section>
+
+		<aside class="about-figures app-surface">
+			<h2 class="app-section-title">{{ 'about.figures' | translate }}</h2>
+			<dl class="about-figure-list">
+				@for (figure of figures(); track figure.key) {
+					<div>
+						<dt>{{ figure.key | translate }}</dt>
+						<dd class="app-numeric">{{ figure.value }}</dd>
+					</div>
+				}
+			</dl>
+		</aside>
+	</div>
+</div>

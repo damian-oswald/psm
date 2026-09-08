@@ -1,0 +1,170 @@
+<div class="app-page search">
+	<header class="app-page-header">
+		<div>
+			<h1>{{ 'app.title' | translate }}</h1>
+			<p>{{ 'app.subtitle' | translate }}</p>
+		</div>
+	</header>
+
+	@if (registry.status() === 'error') {
+		<ob-alert type="error">
+			<p>{{ 'common.error' | translate }}</p>
+			<p class="app-muted">{{ registry.error() }}</p>
+		</ob-alert>
+	} @else if (registry.status() === 'loading') {
+		<p class="search-loading">{{ 'common.loading' | translate }}</p>
+	} @else {
+		<div class="search-layout">
+			<aside class="search-panel" [class.search-panel-closed]="!panelOpen()">
+				<div class="search-panel-head">
+					<h2>{{ 'search.filters' | translate }}</h2>
+					@if (activeCount()) {
+						<button mat-button type="button" (click)="reset()">{{ 'common.clearAll' | translate }}</button>
+					}
+				</div>
+
+				<div class="search-facets">
+					<app-term-select
+						[labelKey]="'filter.crop'"
+						[options]="facetOptions().crops"
+						[selected]="filters().crops"
+						(selectedChange)="setFacet('crops', $event)"
+					/>
+
+					<app-term-select
+						[labelKey]="'filter.pest'"
+						[options]="facetOptions().pests"
+						[selected]="filters().pests"
+						(selectedChange)="setFacet('pests', $event)"
+					/>
+
+					<app-term-select
+						[labelKey]="'filter.holder'"
+						[options]="facetOptions().holders"
+						[selected]="filters().holders"
+						(selectedChange)="setFacet('holders', $event)"
+					/>
+
+					<app-term-select
+						[labelKey]="'filter.substance'"
+						[options]="facetOptions().substances"
+						[selected]="filters().substances"
+						(selectedChange)="setFacet('substances', $event)"
+					/>
+
+					<app-term-multi-select
+						[labelKey]="'filter.productType'"
+						[options]="facetOptions().types"
+						[selected]="filters().types"
+						(selectedChange)="setFacet('types', $event)"
+					/>
+
+					<app-term-multi-select
+						[labelKey]="'filter.status'"
+						[options]="facetOptions().statuses"
+						[selected]="filters().statuses"
+						(selectedChange)="setFacet('statuses', $event)"
+					/>
+				</div>
+
+				<p class="search-panel-more">
+					<a routerLink="/query">{{ 'search.moreFilters' | translate }}</a>
+				</p>
+			</aside>
+
+			<main class="search-results">
+				<div class="search-bar app-surface">
+					<mat-form-field class="search-field" subscriptSizing="dynamic">
+						<mat-label>{{ 'search.label' | translate }}</mat-label>
+						<mat-icon matPrefix svgIcon="search" />
+						<input
+							matInput
+							type="search"
+							name="query"
+							autocomplete="off"
+							[placeholder]="'search.placeholder' | translate"
+							[ngModel]="filters().text"
+							(ngModelChange)="setText($event)"
+						/>
+						@if (filters().text) {
+							<button
+								matSuffix
+								mat-icon-button
+								type="button"
+								[attr.aria-label]="'common.reset' | translate"
+								(click)="setText('')"
+							>
+								<mat-icon svgIcon="xmark" />
+							</button>
+						}
+					</mat-form-field>
+
+					<mat-form-field class="search-sort" subscriptSizing="dynamic">
+						<mat-label>{{ 'search.sortLabel' | translate }}</mat-label>
+						<mat-select [value]="sort()" (valueChange)="sort.set($event)">
+							@for (key of sortKeys; track key) {
+								<mat-option [value]="key">{{ 'search.sort.' + key | translate }}</mat-option>
+							}
+						</mat-select>
+					</mat-form-field>
+
+					<button
+						class="search-panel-toggle"
+						mat-stroked-button
+						type="button"
+						(click)="panelOpen.set(!panelOpen())"
+					>
+						<mat-icon svgIcon="filter" />
+						{{ (panelOpen() ? 'search.closeFilters' : 'search.openFilters') | translate }}
+						@if (activeCount()) {
+							<span class="search-panel-toggle-count">{{ activeCount() }}</span>
+						}
+					</button>
+				</div>
+
+				@if (activeBadges().length) {
+					<div class="search-badges">
+						<span class="app-field-label">{{ 'search.activeFilters' | translate }}</span>
+						<mat-chip-set>
+							@for (badge of activeBadges(); track badge.facet + badge.id) {
+								<mat-chip [title]="badge.facetLabel + ': ' + badge.fullLabel" (removed)="removeBadge(badge.facet, badge.id)">
+									<span class="badge-facet">{{ badge.facetLabel }}</span>
+									{{ badge.label }}
+									<button matChipRemove [attr.aria-label]="badge.facetLabel + ': ' + badge.fullLabel">
+										<mat-icon svgIcon="xmark" />
+									</button>
+								</mat-chip>
+							}
+						</mat-chip-set>
+					</div>
+				}
+
+				<p class="search-count app-muted">
+					{{ 'search.results' | translate: {count: matching().length, total: registry.products().length} }}
+				</p>
+
+				@if (matching().length) {
+					<div class="search-grid">
+						@for (product of pageProducts(); track product.id) {
+							<app-product-card [product]="product" />
+						}
+					</div>
+
+					<mat-paginator
+						[length]="matching().length"
+						[pageIndex]="page()"
+						[pageSize]="pageSize()"
+						[pageSizeOptions]="pageSizes"
+						(page)="onPage($event)"
+					/>
+				} @else {
+					<div class="app-empty app-surface">
+						<p class="search-empty-title">{{ 'common.noResults' | translate }}</p>
+						<p>{{ 'common.noResultsHint' | translate }}</p>
+						<button mat-stroked-button type="button" (click)="reset()">{{ 'common.clearAll' | translate }}</button>
+					</div>
+				}
+			</main>
+		</div>
+	}
+</div>

@@ -1,0 +1,244 @@
+@use '@oblique/oblique/styles/scss/core/variables' as ob;
+
+/**
+ * The detail view is a document, not a dashboard.
+ *
+ * One column, read from the top: what the product is, who holds its admission and what is
+ * in it; then how it is labelled; then the indications, which are the long part; then the
+ * admissions derived from it. Sections are told apart by a heading and a rule, and the
+ * codes that identify a term for a machine — the letter of an application area, the
+ * CropLife formulation code, the number of an obligation — are left out, since the name
+ * beside them already says what they say.
+ */
+
+.detail-back {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin-bottom: ob.$ob-spacing-md;
+	font-size: 0.875rem;
+}
+
+.detail-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: ob.$ob-spacing-lg;
+	margin-bottom: ob.$ob-spacing-lg;
+
+	h1 {
+		margin: 0;
+		font-size: 1.875rem;
+		line-height: 1.15;
+		letter-spacing: -0.5px;
+	}
+}
+
+.detail-identity {
+	min-width: 0;
+}
+
+.detail-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
+	margin: ob.$ob-spacing-sm 0 0;
+	color: var(--app-text-muted);
+}
+
+.detail-pictograms {
+	display: flex;
+	flex-wrap: wrap;
+	gap: ob.$ob-spacing-sm;
+}
+
+.detail-deadline {
+	margin-bottom: ob.$ob-spacing-lg;
+
+	p {
+		margin: 0;
+	}
+}
+
+.detail {
+	max-width: 68rem;
+}
+
+section {
+	padding-top: ob.$ob-spacing-lg;
+	margin-top: ob.$ob-spacing-lg;
+	border-top: var(--app-border);
+}
+
+h2 {
+	margin: 0 0 ob.$ob-spacing-default;
+	font-size: 1.25rem;
+	font-weight: 700;
+}
+
+h3 {
+	margin: ob.$ob-spacing-lg 0 ob.$ob-spacing-xs;
+	font-size: 1rem;
+	font-weight: 600;
+}
+
+.detail-fields {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+	gap: ob.$ob-spacing-lg;
+	margin: 0;
+
+	dt {
+		margin-bottom: 2px;
+		color: var(--app-text-muted);
+		font-size: 0.875rem;
+		font-weight: 400;
+	}
+
+	dd {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		margin: 0;
+	}
+}
+
+.detail-holder-name {
+	font-weight: 600;
+}
+
+.detail-right {
+	text-align: right;
+}
+
+.detail-share,
+.detail-line {
+	display: block;
+	white-space: nowrap;
+}
+
+.detail-line {
+	white-space: normal;
+}
+
+.detail-indication-filters {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: ob.$ob-spacing-md;
+	margin-bottom: ob.$ob-spacing-sm;
+
+	app-term-select {
+		flex: 1 1 16rem;
+		max-width: 22rem;
+	}
+}
+
+.detail-count {
+	margin: 0;
+	font-size: 0.875rem;
+}
+
+.detail-inherited {
+	margin: 0 0 ob.$ob-spacing-md;
+	font-size: 0.9375rem;
+}
+
+.detail-indication-table {
+	table-layout: fixed;
+	width: 100%;
+
+	td,
+	th {
+		vertical-align: top;
+	}
+
+	thead th {
+		font-size: 0.8125rem;
+		font-weight: 600;
+	}
+
+	col:nth-child(1) {
+		width: 22%;
+	}
+
+	col:nth-child(2) {
+		width: 32%;
+	}
+
+	col:nth-child(3),
+	col:nth-child(4),
+	col:nth-child(5) {
+		width: 13%;
+	}
+
+	col:nth-child(6) {
+		width: 7%;
+	}
+}
+
+.detail-expanded-row td {
+	background: var(--app-surface-muted);
+}
+
+.detail-note-title {
+	margin: ob.$ob-spacing-sm 0 0.25rem;
+	font-weight: 600;
+	font-size: 0.875rem;
+}
+
+.detail-notes {
+	margin: 0;
+	padding-left: 1.125rem;
+	font-size: 0.9375rem;
+
+	li {
+		margin-bottom: 0.25rem;
+	}
+}
+
+.detail-expand {
+	min-width: 0;
+	padding: 0 0.5rem;
+}
+
+.detail-links {
+	margin: 0;
+	padding-left: 0;
+	list-style: none;
+
+	li {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: ob.$ob-spacing-sm;
+		max-width: 32rem;
+		padding: 0.25rem 0;
+		border-bottom: var(--app-border);
+	}
+}
+
+.detail-address {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	font-style: normal;
+}
+
+.detail-signal-word {
+	margin: 0 0 ob.$ob-spacing-sm;
+	font-weight: 700;
+	color: ob.$ob-error;
+}
+
+.detail-linked-data {
+	margin: ob.$ob-spacing-default 0 0;
+	font-size: 0.875rem;
+}
+
+.detail-loading {
+	padding: ob.$ob-spacing-xxl 0;
+	color: var(--app-text-muted);
+}

@@ -1,0 +1,279 @@
+<div class="app-page detail">
+	@if (!ready()) {
+		<p class="detail-loading">{{ 'common.loading' | translate }}</p>
+	} @else if (!product()) {
+		<ob-alert type="warning">{{ 'product.notFound' | translate }}</ob-alert>
+		<p><a mat-stroked-button routerLink="/products">{{ 'common.backToSearch' | translate }}</a></p>
+	} @else {
+		<a class="detail-back" routerLink="/products">
+			<mat-icon svgIcon="chevron_left" />
+			{{ 'common.backToSearch' | translate }}
+		</a>
+
+		<header class="detail-header">
+			<div class="detail-identity">
+				<h1>{{ product()!.name }}</h1>
+				<p class="detail-meta">
+					<span class="app-numeric">{{ product()!.admissionNumber }}</span>
+					@for (type of typeLabels(); track type) {
+						<span aria-hidden="true">·</span>
+						<span>{{ type }}</span>
+					}
+					<span aria-hidden="true">·</span>
+					<span>{{ 'kind.' + product()!.kind | translate }}</span>
+					<app-status-badge [status]="status()" />
+				</p>
+			</div>
+			@if (pictograms().length) {
+				<div class="detail-pictograms">
+					@for (pictogram of pictograms(); track pictogram.id) {
+						<app-ghs-pictogram
+							[code]="pictogram.code ?? ''"
+							[label]="pictogram.label"
+							[size]="52"
+							[matTooltip]="pictogram.label"
+						/>
+					}
+				</div>
+			}
+		</header>
+
+		@if (product()!.exhaustionDeadline || product()!.soldOutDeadline) {
+			<ob-alert type="warning" class="detail-deadline">
+				@if (product()!.soldOutDeadline) {
+					<p>{{ 'product.soldOutDeadline' | translate }}: {{ product()!.soldOutDeadline }}</p>
+				}
+				@if (product()!.exhaustionDeadline) {
+					<p>{{ 'product.exhaustionDeadline' | translate }}: {{ product()!.exhaustionDeadline }}</p>
+				}
+			</ob-alert>
+		}
+
+		<section>
+			<h2>{{ 'product.overview' | translate }}</h2>
+			<dl class="detail-fields">
+				<div>
+					<dt>{{ 'product.holder' | translate }}</dt>
+					<dd>
+						@if (organization(); as holder) {
+							<span class="detail-holder-name">{{ holder.legalName }}</span>
+							@if (holder.street) {
+								<span>{{ holder.street }}</span>
+							}
+							@if (holder.postalCode || holder.locality) {
+								<span>{{ holder.postalCode }} {{ holder.locality }}</span>
+							}
+							@if (holder.country) {
+								<span>{{ countryName(holder.country) }}</span>
+							}
+							@for (email of holder.emails; track email) {
+								<a [href]="'mailto:' + email">{{ email }}</a>
+							}
+							@for (telephone of holder.telephones; track telephone) {
+								<a [href]="'tel:' + telephone">{{ telephone }}</a>
+							}
+						} @else {
+							{{ product()!.holderName ?? ('common.none' | translate) }}
+						}
+					</dd>
+				</div>
+
+				<div>
+					<dt>{{ 'product.activeSubstances' | translate }}</dt>
+					<dd>
+						@for (ingredient of activeSubstances(); track ingredient.substance.id) {
+							<span>{{ ingredientText(ingredient) }}</span>
+						} @empty {
+							<span class="app-muted">{{ 'common.none' | translate }}</span>
+						}
+					</dd>
+				</div>
+
+				@if (otherIngredients().length) {
+					<div>
+						<dt>{{ 'product.otherIngredients' | translate }}</dt>
+						<dd>
+							@for (ingredient of otherIngredients(); track ingredient.substance.id) {
+								<span>{{ ingredientText(ingredient) }}</span>
+							}
+						</dd>
+					</div>
+				}
+
+				@if (formulationTerms().length) {
+					<div>
+						<dt>{{ 'product.formulation' | translate }}</dt>
+						<dd><span>{{ formulationNames() }}</span></dd>
+					</div>
+				}
+
+				<div>
+					<dt>{{ 'product.country' | translate }}</dt>
+					<dd><span>{{ countryLabel() }}</span></dd>
+				</div>
+
+				@if (indicationSource(); as source) {
+					<div>
+						<dt>{{ 'product.referenceProduct' | translate }}</dt>
+						<dd>
+							<a [routerLink]="['/products', source.id]">{{ source.name }}</a>
+							<span class="app-muted app-numeric">{{ source.admissionNumber }}</span>
+						</dd>
+					</div>
+				}
+
+				@if (foreignAdmissionNumbers().length) {
+					<div>
+						<dt>{{ 'product.foreignAdmissionNumber' | translate }}</dt>
+						<dd><span class="app-numeric">{{ foreignAdmissionNumbers().join(', ') }}</span></dd>
+					</div>
+				}
+
+				@if (packageInsertNumbers().length) {
+					<div>
+						<dt>{{ 'product.packageInsertNumber' | translate }}</dt>
+						<dd><span class="app-numeric">{{ packageInsertNumbers().join(', ') }}</span></dd>
+					</div>
+				}
+			</dl>
+		</section>
+
+		@if (signalWords().length || hazardStatements().length || plantProtectionStatements().length) {
+			<section>
+				<h2>{{ 'product.labelling' | translate }}</h2>
+				@if (signalWords().length) {
+					<p class="detail-signal-word">{{ signalWords()[0].label }}</p>
+				}
+				<ul class="detail-notes">
+					@for (statement of hazardStatements(); track statement.id) {
+						<li>{{ statement.label }}</li>
+					}
+					@for (statement of plantProtectionStatements(); track statement.id) {
+						<li>{{ statement.label }}</li>
+					}
+				</ul>
+			</section>
+		}
+
+		@if (indications().length) {
+			<section>
+				<h2>{{ 'product.indications' | translate }}</h2>
+
+				@if (indicationSource(); as source) {
+					<p class="app-muted detail-inherited">
+						{{ 'product.inheritedIndications' | translate: {name: source.name} }}
+					</p>
+				}
+
+				<div class="detail-indication-filters">
+					<app-term-select
+						[labelKey]="'filter.crop'"
+						[options]="cropOptions()"
+						[selected]="cropFilter()"
+						(selectedChange)="cropFilter.set($event)"
+					/>
+					<app-term-select
+						[labelKey]="'filter.pest'"
+						[options]="pestOptions()"
+						[selected]="pestFilter()"
+						(selectedChange)="pestFilter.set($event)"
+					/>
+					<p class="detail-count app-muted">
+						{{ 'product.indicationCount' | translate: {count: visibleIndicationCount()} }}
+					</p>
+				</div>
+
+				@for (group of indicationGroups(); track group.area.id) {
+					<h3>{{ group.area.label }}</h3>
+					<div class="app-scroll-x">
+						<table class="ob-table ob-table-sm detail-indication-table">
+							<colgroup>
+								<col /><col /><col /><col /><col /><col />
+							</colgroup>
+							<thead>
+								<tr>
+									<th scope="col">{{ 'product.crop' | translate }}</th>
+									<th scope="col">{{ 'product.pest' | translate }}</th>
+									<th scope="col" class="detail-right">{{ 'product.dosage' | translate }}</th>
+									<th scope="col" class="detail-right">{{ 'product.expenditure' | translate }}</th>
+									<th scope="col" class="detail-right">{{ 'product.waitingPeriod' | translate }}</th>
+									<th scope="col"><span class="app-visually-hidden">{{ 'common.showMore' | translate }}</span></th>
+								</tr>
+							</thead>
+							<tbody>
+								@for (indication of group.indications; track indication.id) {
+									<tr>
+										<td>
+											@for (crop of indication.crops; track crop) {
+												<span class="detail-line">{{ cropLabel(crop) }}</span>
+											}
+										</td>
+										<td>
+											@for (pest of indication.pests; track pest.id) {
+												<span class="detail-line">
+													{{ pestLabel(pest.id) }}
+													@if (pest.effect && pest.effect !== 'full') {
+														<span class="app-muted">({{ 'product.effect.' + pest.effect | translate }})</span>
+													}
+												</span>
+											}
+										</td>
+										<td class="detail-right app-numeric">{{ quantity(indication.dosage) }}</td>
+										<td class="detail-right app-numeric">{{ quantity(indication.expenditure) }}</td>
+										<td class="detail-right app-numeric">{{ quantity(indication.waitingPeriod) }}</td>
+										<td class="detail-right">
+											@if (indication.obligations.length || indication.comments.length) {
+												<button
+													mat-button
+													type="button"
+													class="detail-expand"
+													[attr.aria-expanded]="expanded() === indication.id"
+													(click)="toggle(indication.id)"
+												>
+													<mat-icon [svgIcon]="expanded() === indication.id ? 'chevron_up' : 'chevron_down'" />
+													<span class="app-numeric">{{ indication.obligations.length + indication.comments.length }}</span>
+												</button>
+											}
+										</td>
+									</tr>
+									@if (expanded() === indication.id) {
+										<tr class="detail-expanded-row">
+											<td colspan="6">
+												<ul class="detail-notes">
+													@for (comment of indication.comments; track comment) {
+														<li>{{ commentTerm(comment).label }}</li>
+													}
+													@for (obligation of indication.obligations; track obligation) {
+														<li>{{ obligationTerm(obligation).label }}</li>
+													}
+												</ul>
+											</td>
+										</tr>
+									}
+								}
+							</tbody>
+						</table>
+					</div>
+				}
+			</section>
+		}
+
+		@if (derivedProducts().length) {
+			<section>
+				<h2>{{ 'product.derivedProducts' | translate }}</h2>
+				<ul class="detail-links">
+					@for (derived of derivedProducts(); track derived.id) {
+						<li>
+							<a [routerLink]="['/products', derived.id]">{{ derived.name }}</a>
+							<span class="app-muted app-numeric">{{ derived.id }}</span>
+						</li>
+					}
+				</ul>
+			</section>
+		}
+
+		<p class="detail-linked-data">
+			<a [href]="lindasLink()" target="_blank" rel="noopener">{{ 'product.linkedData' | translate }}</a>
+		</p>
+	}
+</div>

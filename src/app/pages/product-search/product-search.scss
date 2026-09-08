@@ -1,0 +1,157 @@
+@use '@oblique/oblique/styles/scss/core/variables' as ob;
+
+.search-layout {
+	display: grid;
+	grid-template-columns: var(--app-panel-width) minmax(0, 1fr);
+	gap: ob.$ob-spacing-lg;
+	align-items: start;
+
+	@media (max-width: 1099px) {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.search-panel {
+	position: sticky;
+	top: 5rem;
+	max-height: calc(100vh - 7rem);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: ob.$ob-spacing-default ob.$ob-spacing-default ob.$ob-spacing-lg;
+	background: var(--app-surface);
+	border: var(--app-border);
+	border-radius: var(--app-radius);
+
+	@media (max-width: 1099px) {
+		position: static;
+		max-height: none;
+		order: 2;
+	}
+}
+
+.search-panel-closed {
+	display: none;
+
+	/* The toggle only exists on narrow screens, so the panel always returns on wide ones. */
+	@media (min-width: 1100px) {
+		display: block;
+	}
+}
+
+.search-panel-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: ob.$ob-spacing-sm;
+	margin-bottom: ob.$ob-spacing-sm;
+
+	h2 {
+		margin: 0;
+		font-size: 1rem;
+		font-weight: 700;
+	}
+}
+
+.search-facets {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	padding-top: ob.$ob-spacing-md;
+	border-top: var(--app-border);
+}
+
+.search-panel-more {
+	margin: ob.$ob-spacing-default 0 0;
+	padding-top: ob.$ob-spacing-md;
+	border-top: var(--app-border);
+	font-size: 0.875rem;
+}
+
+.search-results {
+	display: flex;
+	flex-direction: column;
+	gap: ob.$ob-spacing-default;
+	min-width: 0;
+}
+
+.search-bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	gap: ob.$ob-spacing-md;
+	padding: ob.$ob-spacing-md;
+}
+
+.search-field {
+	flex: 3 1 22rem;
+}
+
+.search-sort {
+	flex: 1 1 12rem;
+}
+
+.search-panel-toggle {
+	align-self: center;
+
+	@media (min-width: 1100px) {
+		display: none;
+	}
+}
+
+.search-panel-toggle-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.25rem;
+	height: 1.25rem;
+	margin-left: 0.375rem;
+	padding: 0 0.25rem;
+	border-radius: 999px;
+	background: var(--app-accent);
+	color: #fff;
+	font-size: 0.6875rem;
+	font-weight: 700;
+}
+
+.search-badges {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: ob.$ob-spacing-sm;
+
+	.app-field-label {
+		margin: 0;
+	}
+}
+
+.badge-facet {
+	margin-right: 0.375rem;
+	font-weight: 700;
+	opacity: 0.7;
+
+	&::after {
+		content: ':';
+	}
+}
+
+.search-count {
+	margin: 0;
+	font-size: 0.875rem;
+}
+
+.search-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+	gap: ob.$ob-spacing-default;
+}
+
+.search-loading {
+	padding: ob.$ob-spacing-xxl 0;
+	color: var(--app-text-muted);
+}
+
+.search-empty-title {
+	font-size: 1.125rem;
+	font-weight: 700;
+	color: ob.$ob-default;
+}

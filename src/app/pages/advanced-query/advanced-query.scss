@@ -1,0 +1,150 @@
+@use '@oblique/oblique/styles/scss/core/variables' as ob;
+
+.query-intro {
+	max-width: 72ch;
+}
+
+.query-form {
+	padding: ob.$ob-spacing-md ob.$ob-spacing-lg ob.$ob-spacing-lg;
+	margin-bottom: ob.$ob-spacing-lg;
+}
+
+/**
+ * The heading row carries the primary action.
+ *
+ * With a dozen criteria in the form, a submit button at its foot would sit below the fold
+ * whenever the form is open; here it stays in view next to the heading it belongs to.
+ */
+.query-form-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: ob.$ob-spacing-md;
+	padding-bottom: ob.$ob-spacing-sm;
+	border-bottom: var(--app-border);
+
+	h2 {
+		margin: 0;
+		font-size: 1.125rem;
+		font-weight: 700;
+	}
+}
+
+.query-actions {
+	display: flex;
+	align-items: center;
+	gap: ob.$ob-spacing-sm;
+}
+
+.query-examples {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: ob.$ob-spacing-xs;
+	margin: ob.$ob-spacing-md 0;
+}
+
+.query-example {
+	padding: 0 0.75rem;
+	border: var(--app-border-strong);
+	border-radius: 999px;
+	font-size: 0.8125rem;
+	font-weight: 400;
+	line-height: 1.3;
+}
+
+.query-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+	gap: ob.$ob-spacing-md;
+	align-items: start;
+	margin-bottom: ob.$ob-spacing-default;
+}
+
+.query-grid-exclusions {
+	padding: ob.$ob-spacing-md;
+	border-left: 3px solid ob.$ob-accent;
+	background: var(--app-surface-muted);
+}
+
+.query-grid-title {
+	grid-column: 1 / -1;
+	margin: 0;
+}
+
+.query-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: ob.$ob-spacing-xs ob.$ob-spacing-lg;
+	margin: 0;
+	padding: ob.$ob-spacing-md 0 0;
+	border: 0;
+	border-top: var(--app-border);
+	font-size: 0.875rem;
+
+	legend {
+		padding: 0;
+		float: left;
+		width: 100%;
+		margin-bottom: ob.$ob-spacing-xs;
+	}
+}
+
+.query-output {
+	display: flex;
+	flex-direction: column;
+	gap: ob.$ob-spacing-default;
+	min-width: 0;
+}
+
+.query-result-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: ob.$ob-spacing-sm;
+}
+
+.query-count {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+/** A secondary control: reading the query is for the curious, not for the task. */
+.query-sparql-toggle {
+	font-size: 0.8125rem;
+	font-weight: 400;
+	color: var(--app-text-muted);
+}
+
+.query-sparql {
+	padding: ob.$ob-spacing-md;
+}
+
+.query-sparql pre {
+	margin: 0;
+	padding: ob.$ob-spacing-md;
+	background: ob.$ob-secondary-800;
+	color: #e6ecf1;
+	border-radius: var(--app-radius);
+	white-space: pre;
+}
+
+.query-sparql-actions {
+	display: flex;
+	gap: ob.$ob-spacing-sm;
+	margin-top: ob.$ob-spacing-sm;
+}
+
+.query-results {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(19rem, 1fr));
+	gap: ob.$ob-spacing-default;
+}
+
+.query-loading {
+	padding: ob.$ob-spacing-xl 0;
+	color: var(--app-text-muted);
+}

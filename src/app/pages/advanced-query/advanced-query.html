@@ -1,0 +1,213 @@
+<div class="app-page query">
+	<header class="app-page-header">
+		<div>
+			<h1>{{ 'query.title' | translate }}</h1>
+			<p class="query-intro">{{ 'query.intro' | translate }}</p>
+		</div>
+	</header>
+
+	@if (registry.status() !== 'ready') {
+		<p class="query-loading">{{ 'common.loading' | translate }}</p>
+	} @else {
+		<form class="query-form app-surface" (submit)="$event.preventDefault(); run()">
+			<div class="query-form-head">
+				<h2>{{ 'query.criteria' | translate }}</h2>
+				<div class="query-actions">
+					<button mat-button type="button" (click)="reset()">{{ 'common.reset' | translate }}</button>
+					<button mat-flat-button type="submit" [disabled]="!runnable() || running()">
+						<mat-icon svgIcon="search" />
+						{{ 'query.run' | translate }}
+					</button>
+				</div>
+			</div>
+
+			<div class="query-grid">
+				<app-term-select
+					[labelKey]="'filter.crop'"
+					[options]="cropOptions()"
+					[selected]="criteria().crops"
+					(selectedChange)="update('crops', $event)"
+				/>
+				<app-term-select
+					[labelKey]="'filter.pest'"
+					[options]="pestOptions()"
+					[selected]="criteria().pests"
+					(selectedChange)="update('pests', $event)"
+				/>
+				<app-term-select
+					[labelKey]="'filter.applicationArea'"
+					[options]="areaOptions()"
+					[selected]="criteria().applicationAreas"
+					(selectedChange)="update('applicationAreas', $event)"
+				/>
+				<app-term-multi-select
+					[labelKey]="'filter.productType'"
+					[options]="typeOptions()"
+					[selected]="criteria().productTypes"
+					(selectedChange)="update('productTypes', $event)"
+				/>
+
+				<app-term-select
+					[labelKey]="'query.requiredSubstance'"
+					[options]="substanceOptions()"
+					[selected]="criteria().substances"
+					(selectedChange)="update('substances', $event)"
+				/>
+				<app-term-select
+					[labelKey]="'query.requiredLabelElement'"
+					[options]="labelOptions()"
+					[selected]="criteria().labelElements"
+					(selectedChange)="update('labelElements', $event)"
+				/>
+				<app-term-select
+					[labelKey]="'query.requiredObligation'"
+					[options]="obligationOptions()"
+					[selected]="criteria().obligations"
+					(selectedChange)="update('obligations', $event)"
+				/>
+				<app-term-select
+					[labelKey]="'filter.formulation'"
+					[options]="formulationOptions()"
+					[selected]="criteria().formulations"
+					(selectedChange)="update('formulations', $event)"
+				/>
+
+				<app-term-select
+					[labelKey]="'filter.holder'"
+					[options]="holderOptions()"
+					[selected]="criteria().holders"
+					(selectedChange)="update('holders', $event)"
+				/>
+				<app-term-multi-select
+					[labelKey]="'filter.kind'"
+					[options]="kindOptions()"
+					[selected]="criteria().kinds"
+					(selectedChange)="updateKinds($event)"
+				/>
+				<app-term-multi-select
+					[labelKey]="'filter.country'"
+					[options]="countryOptions()"
+					[selected]="criteria().countries"
+					(selectedChange)="update('countries', $event)"
+				/>
+				<mat-form-field subscriptSizing="dynamic">
+					<mat-label>{{ 'query.maxWaitingPeriod' | translate }}</mat-label>
+					<input
+						matInput
+						type="number"
+						min="0"
+						step="1"
+						name="maxWaitingPeriod"
+						[ngModel]="criteria().maxWaitingPeriodDays"
+						(ngModelChange)="updateWaitingPeriod($event)"
+					/>
+					<span matTextSuffix>{{ 'unit.day' | translate }}</span>
+				</mat-form-field>
+			</div>
+
+			<div class="query-grid query-grid-exclusions">
+				<span class="query-grid-title app-field-label">{{ 'query.exclusions' | translate }}</span>
+				<app-term-select
+					[labelKey]="'query.excludedLabelElement'"
+					[options]="excludedLabelOptions()"
+					[selected]="criteria().excludedLabelElements"
+					(selectedChange)="update('excludedLabelElements', $event)"
+				/>
+				<app-term-select
+					[labelKey]="'query.excludedSubstance'"
+					[options]="excludedSubstanceOptions()"
+					[selected]="criteria().excludedSubstances"
+					(selectedChange)="update('excludedSubstances', $event)"
+				/>
+				<app-term-select
+					[labelKey]="'query.excludedObligation'"
+					[options]="excludedObligationOptions()"
+					[selected]="criteria().excludedObligations"
+					(selectedChange)="update('excludedObligations', $event)"
+				/>
+			</div>
+
+			<fieldset class="query-options">
+				<legend class="app-field-label">{{ 'query.options' | translate }}</legend>
+				<mat-checkbox [checked]="criteria().includeSubCrops" (change)="update('includeSubCrops', $event.checked)">
+					{{ 'filter.includeSubCrops' | translate }}
+				</mat-checkbox>
+				<mat-checkbox
+					[checked]="criteria().sameIndication"
+					(change)="update('sameIndication', $event.checked)"
+					[matTooltip]="'query.sameIndicationHint' | translate"
+				>
+					{{ 'query.sameIndication' | translate }}
+				</mat-checkbox>
+				<mat-checkbox [checked]="criteria().includeInherited" (change)="update('includeInherited', $event.checked)">
+					{{ 'query.includeInherited' | translate }}
+				</mat-checkbox>
+				<mat-checkbox
+					[checked]="criteria().onlyWithoutDeadline"
+					(change)="update('onlyWithoutDeadline', $event.checked)"
+				>
+					{{ 'query.onlyWithoutDeadline' | translate }}
+				</mat-checkbox>
+				@for (effect of effects; track effect) {
+					<mat-checkbox [checked]="criteria().effects.includes(effect)" (change)="toggleEffect(effect, $event.checked)">
+						{{ 'query.effectOnly' | translate: {effect: 'product.effect.' + effect | translate} }}
+					</mat-checkbox>
+				}
+			</fieldset>
+		</form>
+
+		<section class="query-output">
+			@if (error()) {
+				<ob-alert type="error">
+					<p>{{ 'common.error' | translate }}</p>
+					<p class="app-muted">{{ error() }}</p>
+				</ob-alert>
+			}
+
+			@if (running()) {
+				<p class="query-loading">{{ 'common.loading' | translate }}</p>
+			} @else if (results(); as products) {
+				<div class="query-result-head">
+					<p class="query-count">{{ 'query.results' | translate: {count: products.length} }}</p>
+					<button mat-button type="button" class="query-sparql-toggle" (click)="showQuery.set(!showQuery())">
+						<mat-icon [svgIcon]="showQuery() ? 'chevron_up' : 'chevron_down'" />
+						{{ (showQuery() ? 'query.hideSparql' : 'query.showSparql') | translate }}
+					</button>
+				</div>
+
+				@if (showQuery()) {
+					<div class="query-sparql app-surface">
+						<div class="app-scroll-x">
+							<pre class="app-code">{{ query() }}</pre>
+						</div>
+						<div class="query-sparql-actions">
+							<button mat-stroked-button type="button" (click)="copyQuery()">
+								<mat-icon svgIcon="copy" />
+								{{ 'common.copy' | translate }}
+							</button>
+							<a mat-stroked-button [href]="guiLink()" target="_blank" rel="noopener">
+								{{ 'query.openInLindas' | translate }}
+							</a>
+						</div>
+					</div>
+				}
+
+				@if (products.length) {
+					<div class="query-results">
+						@for (product of products; track product.id) {
+							<app-product-card [product]="product" />
+						}
+					</div>
+				} @else {
+					<div class="app-empty app-surface">
+						<p>{{ 'common.noResults' | translate }}</p>
+					</div>
+				}
+			} @else {
+				<div class="app-empty app-surface">
+					<p>{{ 'query.empty' | translate }}</p>
+				</div>
+			}
+		</section>
+	}
+</div>
