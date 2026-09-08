@@ -38,8 +38,13 @@ createServer(async (request, response) => {
 		response.writeHead(200, {'Content-Type': types[extname(relative)] ?? 'application/octet-stream'});
 		response.end(body);
 	} catch {
-		const notFound = await readFile(join(root, '404.html'));
-		response.writeHead(404, {'Content-Type': 'text/html'});
-		response.end(notFound);
+		try {
+			const notFound = await readFile(join(root, '404.html'));
+			response.writeHead(404, {'Content-Type': 'text/html'});
+			response.end(notFound);
+		} catch {
+			response.writeHead(404, {'Content-Type': 'text/plain'});
+			response.end('404');
+		}
 	}
 }).listen(port, () => console.log(`serving ${root} at http://localhost:${port}${base}/`));

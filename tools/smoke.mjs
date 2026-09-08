@@ -54,7 +54,9 @@ for (const route of targets) {
 	await new Promise(resolve => setTimeout(resolve, Number(wait)));
 
 	const name = path.replace(/[^a-z0-9]+/giu, '-').replace(/^-|-$/gu, '') || 'root';
-	await page.screenshot({path: `${shots}/${name}.png`, fullPage: true});
+	// The viewport only: a full-page capture of the detail view runs to some 13000 pixels
+	// and has crashed the browser's screenshot call.
+	await page.screenshot({path: `${shots}/${name}.png`});
 
 	const heading = await page.evaluate(() => document.querySelector('h1')?.textContent?.trim() ?? '(no h1)');
 	console.log(`${problems.length ? 'FAIL' : ' OK '}  ${path}  ${heading}`);

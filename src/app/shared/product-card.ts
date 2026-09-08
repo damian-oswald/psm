@@ -91,19 +91,23 @@ import {StatusBadgeComponent} from './status-badge';
 			line-height: 1.3;
 		}
 
-		/* Products carry up to three types; the line wraps rather than cutting a word. */
+		/*
+		 * Products carry up to three types. The line wraps freely, and the word breaking
+		 * that Oblique sets on the body is turned off here so that a type name moves to the
+		 * next line whole instead of being cut in half.
+		 */
 		.product-card-meta {
 			margin: 0.125rem 0 0;
 			font-size: 0.8125rem;
 			color: var(--app-text-muted);
-			display: -webkit-box;
-			-webkit-line-clamp: 2;
-			-webkit-box-orient: vertical;
-			overflow: hidden;
+			word-break: normal;
+			overflow-wrap: normal;
 		}
 
 		.product-card-number {
 			font-weight: 600;
+			/* The admission number is one token; it must not break at its hyphen. */
+			white-space: nowrap;
 		}
 
 		.product-card-separator {
