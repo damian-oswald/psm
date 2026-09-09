@@ -18,7 +18,7 @@
       "effects": "Die Eigenschaften für volle, teilweise und Nebenwirkung verfeinern die Eigenschaft ppp:pest. Ein Schadorganismus erscheint daher unter beiden Eigenschaften und wird in der Darstellung nur einmal gezeigt.",
       "inheritance": "Verkaufsbewilligungen und Parallelimporte führen keine eigenen Indikationen; sie übernehmen jene ihres Referenzprodukts. Suche und Abfrage berücksichtigen diese Vererbung.",
       "language": "Die Bezeichnungen der Code-Listen liegen auf Deutsch, Französisch und Italienisch vor. Fehlt eine Übersetzung, wird auf Deutsch und danach auf Französisch zurückgegriffen. Die 23 Produktarten tragen im Graphen nur englische Namen; ihre Übersetzungen stammen aus dieser Anwendung.",
-      "pictograms": "Die Gefahrenpiktogramme werden über ihren Code (etwa GHS09) als Bilder des Verzeichnisses psm.admin.ch geladen, da der Graph zu einem Piktogramm keine Bilddatei führt. Lässt sich ein Bild nicht laden, wird der Code im Gefahrenrhombus dargestellt.",
+      "pictograms": "Die Gefahrenpiktogramme sind die gemeinfreien UN-Symbole von Wikimedia Commons, die mit der Anwendung ausgeliefert und über ihren Code (etwa GHS09) angesprochen werden, da der Graph zu einem Piktogramm keine Bilddatei führt. Sie stehen auf transparentem Hintergrund. Fehlt zu einem Code die passende Datei, wird der Code im Gefahrenrhombus dargestellt.",
       "units": "Die Einheit einer quantitativen Angabe wird der Eigenschaft schema:unitText entnommen. Die Eigenschaft schema:unitCode enthält im Graphen einen doppelten Namensraum-Präfix und wird nur ersatzweise ausgewertet."
     },
     "notes": "Hinweise zu den Daten",

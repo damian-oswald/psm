@@ -18,7 +18,7 @@
       "effects": "Le proprietà di effetto completo, parziale e collaterale raffinano la proprietà ppp:pest. Un organismo nocivo compare quindi sotto entrambe le proprietà e viene mostrato una sola volta.",
       "inheritance": "Le autorizzazioni di vendita e le importazioni parallele non hanno indicazioni proprie; riprendono quelle del loro prodotto di riferimento. La ricerca e l'interrogazione tengono conto di questa ereditarietà.",
       "language": "Le denominazioni degli elenchi di codici esistono in tedesco, francese e italiano. In mancanza di una traduzione si ricorre al tedesco e poi al francese. I 23 tipi di prodotto portano nel grafo solo nomi inglesi; le loro traduzioni provengono da questa applicazione.",
-      "pictograms": "I pittogrammi di pericolo sono caricati dal repertorio psm.admin.ch tramite il loro codice (ad esempio GHS09), poiché il grafo non indica alcun file d'immagine. Se un'immagine non può essere caricata, il codice viene rappresentato nel rombo di pericolo.",
+      "pictograms": "I pittogrammi di pericolo sono i simboli ONU di pubblico dominio tratti da Wikimedia Commons, forniti con l'applicazione e indicati tramite il loro codice (ad esempio GHS09), poiché il grafo non indica alcun file d'immagine. Poggiano su uno sfondo trasparente. Se a un codice non corrisponde alcun file, il codice viene rappresentato nel rombo di pericolo.",
       "units": "L'unità di un valore quantitativo è tratta dalla proprietà schema:unitText. La proprietà schema:unitCode contiene nel grafo un prefisso di spazio dei nomi duplicato e viene usata solo in via sussidiaria."
     },
     "notes": "Note sui dati",

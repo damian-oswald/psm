@@ -1,15 +1,17 @@
 import {ChangeDetectionStrategy, Component, input, linkedSignal} from '@angular/core';
 
-/** Where the federal registry publishes the GHS pictograms, addressed by their code. */
-const PICTOGRAM_BASE = 'https://www.psm.admin.ch/images/psm';
+/** Folder holding the bundled GHS pictogram SVGs, named `GHS01.svg` … `GHS09.svg`. */
+const PICTOGRAM_BASE = 'assets/ghs';
 
 /**
- * A GHS hazard pictogram, shown as the official image published by the registry.
+ * A GHS hazard pictogram, shown as the official UN symbol on a transparent canvas.
  *
  * The graph names its pictograms (`GHS02`, `GHS07`, …) but carries no `schema:image`, so
- * the image is addressed by that code. If it cannot be loaded — an unknown code, or the
- * image host being unreachable — the code itself is drawn inside the standard rhombus,
- * which keeps the hazard legible instead of leaving a gap.
+ * the image is addressed by that code. The SVGs are the public-domain drawings from
+ * Wikimedia Commons, bundled under `src/assets/ghs`; only the diamond interior is white,
+ * as the standard requires, and everything around it is transparent. If a code has no
+ * matching file, the code itself is drawn inside the standard rhombus, which keeps the
+ * hazard legible instead of leaving a gap.
  */
 @Component({
 	selector: 'app-ghs-pictogram',
@@ -69,6 +71,6 @@ export class GhsPictogramComponent {
 	readonly failed = linkedSignal({source: this.code, computation: () => false});
 
 	source(): string {
-		return `${PICTOGRAM_BASE}/${encodeURIComponent(this.code())}.gif`;
+		return `${PICTOGRAM_BASE}/${encodeURIComponent(this.code())}.svg`;
 	}
 }

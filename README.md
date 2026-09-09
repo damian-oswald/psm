@@ -46,7 +46,7 @@ A few properties of the data that shaped the code:
 - `ppp:fullEffect` and its siblings refine `ppp:pest`, so each pest is resolved once and annotated with its effect.
 - Sale permissions and parallel imports carry no indications of their own and inherit their reference product's.
 - A few concepts exist twice under different IRIs and are folded into one, so a filter finds the products of both.
-- Hazard pictograms have no image in the graph and are loaded from `psm.admin.ch` by their code.
+- Hazard pictograms have no image in the graph, so the public-domain UN SVGs from Wikimedia Commons are bundled under `src/assets/ghs` and picked by their code.
 
 ## Running it
 

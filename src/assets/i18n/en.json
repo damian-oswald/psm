@@ -18,7 +18,7 @@
       "effects": "The full, partial and side effect properties refine ppp:pest. A pest therefore appears under both properties and is shown only once.",
       "inheritance": "Sale permissions and parallel imports carry no indications of their own; they take on those of their reference product. Search and query account for this inheritance.",
       "language": "Code list labels exist in German, French and Italian. Where a translation is missing, German and then French are used. The 23 product types carry English names only in the graph; their translations come from this application.",
-      "pictograms": "The hazard pictograms are loaded from the psm.admin.ch registry by their code (GHS09, for instance), since the graph references no image file. Where an image cannot be loaded, the code is drawn inside the hazard rhombus.",
+      "pictograms": "The hazard pictograms are the public-domain UN symbols from Wikimedia Commons, bundled with the app and addressed by their code (GHS09, for instance), since the graph references no image file. They sit on a transparent canvas. Where a code has no matching file, the code is drawn inside the hazard rhombus.",
       "units": "The unit of a quantitative value is taken from schema:unitText. In the graph, schema:unitCode carries a doubled namespace prefix and is only used as a fallback."
     },
     "notes": "Notes on the data",
