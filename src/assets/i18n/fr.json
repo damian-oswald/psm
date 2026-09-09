@@ -18,7 +18,7 @@
       "effects": "Les propriétés d'effet complet, partiel et secondaire affinent la propriété ppp:pest. Un organisme nuisible apparaît donc sous les deux propriétés et n'est affiché qu'une seule fois.",
       "inheritance": "Les autorisations de vente et les importations parallèles ne portent pas d'indications propres; elles reprennent celles de leur produit de référence. La recherche et la requête tiennent compte de cet héritage.",
       "language": "Les désignations des listes de codes existent en allemand, en français et en italien. À défaut de traduction, l'allemand puis le français sont utilisés. Les 23 types de produits ne portent que des noms anglais dans le graphe; leurs traductions proviennent de cette application.",
-      "pictograms": "Les pictogrammes de danger sont chargés depuis le répertoire psm.admin.ch au moyen de leur code (par exemple GHS09), le graphe ne référençant aucun fichier d'image. Si une image ne peut être chargée, le code est représenté dans le losange de danger.",
+      "pictograms": "Les pictogrammes de danger sont les symboles ONU du domaine public issus de Wikimedia Commons, fournis avec l'application et désignés par leur code (par exemple GHS09), le graphe ne référençant aucun fichier d'image. Ils reposent sur un fond transparent. Si aucun fichier ne correspond à un code, celui-ci est représenté dans le losange de danger.",
       "units": "L'unité d'une valeur quantitative est tirée de la propriété schema:unitText. La propriété schema:unitCode contient dans le graphe un préfixe d'espace de noms dédoublé et n'est utilisée qu'à titre subsidiaire."
     },
     "notes": "Remarques sur les données",
