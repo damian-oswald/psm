@@ -22,7 +22,7 @@ export interface SparqlResults {
 /** A plain row where every bound variable is reduced to its string value. */
 export type Row = Record<string, string>;
 
-export const LINDAS_ENDPOINT = 'https://lindas.admin.ch/query';
+export const LINDAS_ENDPOINT = 'https://cached.lindas.admin.ch/query';
 /** Zazuko's SPARQL GUI, used to offer generated queries for inspection. */
 export const LINDAS_GUI = 'https://lindas.admin.ch/sparql';
 

@@ -22,6 +22,11 @@
       "units": "The unit of a quantitative value is taken from schema:unitText. In the graph, schema:unitCode carries a doubled namespace prefix and is only used as a fallback."
     },
     "notes": "Notes on the data",
+    "source": {
+      "cache": "Those queries go to the cached LINDAS endpoint, which answers a query it has already seen from its store instead of evaluating it again. The registry is republished at most once a day, so a cached answer is as current as a freshly computed one and arrives considerably faster.",
+      "intro": "Every figure in this application is read at run time from LINDAS, the Confederation's linked data service, by SPARQL queries sent straight from the browser. The application has no back end and no database of its own; the named graph below is its entire source, and the data model describes how that graph is shaped."
+    },
+    "sourceCode": "Source code",
     "title": "About the registry"
   },
   "app": {

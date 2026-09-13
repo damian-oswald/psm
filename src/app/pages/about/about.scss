@@ -1,29 +1,27 @@
 @use '@oblique/oblique/styles/scss/core/variables' as ob;
 
-.about-layout {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) 20rem;
-	gap: ob.$ob-spacing-lg;
-	align-items: start;
-
-	@media (max-width: 1099px) {
-		grid-template-columns: minmax(0, 1fr);
-	}
+/**
+ * The page is a single reading column.
+ *
+ * Its three parts — what the registry holds in numbers, where the data comes from, and
+ * what the prototype does with it — follow one another down the page, each opened by the
+ * ruled caption that the application uses to separate the sections of a page.
+ */
+.about {
+	max-width: 60rem;
 }
 
-.about-main,
-.about-figures {
-	padding: ob.$ob-spacing-default ob.$ob-spacing-lg ob.$ob-spacing-lg;
+section + section {
+	margin-top: ob.$ob-spacing-xl;
 }
 
-.about-lead {
-	max-width: 68ch;
-	font-size: 1.0625rem;
-	line-height: 1.6;
-}
-
+/*
+ * An IRI is one long token. Oblique would break it wherever the line ends; it is allowed
+ * to break here too, but only once it genuinely cannot fit, so that short ones stay whole.
+ */
 .about-iri {
-	word-break: break-all;
+	word-break: normal;
+	overflow-wrap: anywhere;
 	font-size: 0.875rem;
 }
 
@@ -37,28 +35,60 @@
 	}
 }
 
+/**
+ * The six figures read as two rows of three counts.
+ *
+ * Three columns rather than as many as fit, because the widest label the registry has —
+ * `Bewilligungsinhaber` in German — needs a column that a six-across row cannot give it.
+ */
 .about-figure-list {
 	display: grid;
-	gap: ob.$ob-spacing-md;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: ob.$ob-spacing-lg;
 	margin: 0;
 
-	div {
-		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: ob.$ob-spacing-sm;
-		padding-bottom: ob.$ob-spacing-xs;
-		border-bottom: var(--app-border);
+	@media (max-width: 599px) {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
 	dt {
 		font-size: 0.875rem;
+		font-weight: 400;
 		color: var(--app-text-muted);
+		/*
+		 * Oblique breaks any word that overruns its line. A compound noun cut in half reads
+		 * as a mistake, so a label here moves to the next line whole and is only broken when
+		 * it cannot fit its column at all.
+		 */
+		word-break: normal;
+		overflow-wrap: break-word;
 	}
 
 	dd {
-		margin: 0;
-		font-size: 1.25rem;
-		font-weight: 700;
+		margin: 0.125rem 0 0;
+		font-size: 1.75rem;
+		font-weight: 400;
+		line-height: 1.1;
 	}
+}
+
+/** A figure the registry has not delivered: present, but plainly not a number. */
+.about-figure-unknown {
+	color: var(--app-text-muted);
+}
+
+.about-source-text {
+	max-width: 78ch;
+	line-height: 1.6;
+}
+
+/*
+ * One column, against the shared definition list's habit of fitting as many as it can.
+ * These four values are URLs, one of them seventy characters long; side by side they have
+ * to be broken across lines, and a broken URL is harder to read than a short list is long.
+ */
+.about-source-list {
+	grid-template-columns: minmax(0, 1fr);
+	gap: ob.$ob-spacing-default;
+	margin-top: ob.$ob-spacing-default;
 }

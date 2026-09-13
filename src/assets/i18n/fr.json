@@ -22,6 +22,11 @@
       "units": "L'unité d'une valeur quantitative est tirée de la propriété schema:unitText. La propriété schema:unitCode contient dans le graphe un préfixe d'espace de noms dédoublé et n'est utilisée qu'à titre subsidiaire."
     },
     "notes": "Remarques sur les données",
+    "source": {
+      "cache": "Ces requêtes sont adressées au point d'accès LINDAS mis en cache, qui répond à une requête déjà posée depuis sa mémoire au lieu de l'évaluer à nouveau. Le répertoire n'est republié qu'une fois par jour au plus: une réponse mise en cache est donc aussi actuelle qu'une réponse recalculée, et elle arrive nettement plus vite.",
+      "intro": "Tous les chiffres de cette application sont lus à l'exécution depuis LINDAS, le service Linked Data de la Confédération, au moyen de requêtes SPARQL envoyées directement depuis le navigateur. L'application n'a ni back-end ni base de données propre; le graphe nommé ci-dessous constitue son unique source, et le modèle de données en décrit la structure."
+    },
+    "sourceCode": "Code source",
     "title": "À propos du répertoire"
   },
   "app": {

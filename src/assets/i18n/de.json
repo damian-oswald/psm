@@ -3,7 +3,7 @@
     "endpoint": "SPARQL-Endpunkt",
     "figure": {
       "crops": "Kulturen",
-      "holders": "Bewilligungsinhaberinnen",
+      "holders": "Bewilligungsinhaber",
       "obligations": "Auflagen",
       "pests": "Schadorganismen",
       "products": "Produkte",
@@ -22,6 +22,11 @@
       "units": "Die Einheit einer quantitativen Angabe wird der Eigenschaft schema:unitText entnommen. Die Eigenschaft schema:unitCode enthält im Graphen einen doppelten Namensraum-Präfix und wird nur ersatzweise ausgewertet."
     },
     "notes": "Hinweise zu den Daten",
+    "source": {
+      "cache": "Die Abfragen gehen an den zwischengespeicherten LINDAS-Endpunkt, der eine bereits gestellte Abfrage aus seinem Speicher beantwortet, statt sie erneut auszuwerten. Das Verzeichnis wird höchstens einmal täglich neu veröffentlicht; eine zwischengespeicherte Antwort ist daher ebenso aktuell wie eine neu berechnete und trifft deutlich schneller ein.",
+      "intro": "Sämtliche Kennzahlen dieser Anwendung werden zur Laufzeit aus LINDAS gelesen, dem Linked-Data-Dienst des Bundes, über SPARQL-Abfragen, die direkt aus dem Browser gesendet werden. Die Anwendung hat kein Backend und keine eigene Datenbank; der unten genannte Named Graph ist ihre einzige Quelle, und das Datenmodell beschreibt dessen Aufbau."
+    },
+    "sourceCode": "Quellcode",
     "title": "Über das Verzeichnis"
   },
   "app": {
