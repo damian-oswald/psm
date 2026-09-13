@@ -13,9 +13,10 @@ const PANEL_LIMIT = 60;
 /**
  * Picks any number of terms out of a code list, by typing rather than by scrolling.
  *
- * The registry's code lists run to 1466 obligations and 524 pests, which no dropdown can
- * present usefully. Oblique's autocomplete does the typing part and underlines the part of
- * each option that matched; the running selection is shown below it as removable chips.
+ * The advanced query page asks for terms out of the longest code lists the registry has —
+ * 1466 obligations, 524 pests — and for several of them at once. Oblique's autocomplete
+ * does the typing part and underlines the part of each option that matched; the running
+ * selection hangs below the field as removable chips.
  *
  * The options handed to the autocomplete are pre-filtered and capped, because a panel
  * holding every obligation would put a thousand options into the DOM at once. The filter
@@ -113,16 +114,11 @@ export class TermSelectComponent {
 		if (!this.selected().includes(id)) {
 			this.selected.update(ids => [...ids, id]);
 		}
-		this.clearInput();
+		// The autocomplete keeps the picked term in its input; a multiple choice needs it empty.
+		this.autocomplete().writeValue(null as unknown as Term);
 	}
 
 	remove(id: string): void {
 		this.selected.update(ids => ids.filter(other => other !== id));
-	}
-
-	private clearInput(): void {
-		this.search.set('');
-		// The autocomplete keeps the picked term in its input; a multiple choice needs it empty.
-		this.autocomplete().writeValue(null as unknown as Term);
 	}
 }

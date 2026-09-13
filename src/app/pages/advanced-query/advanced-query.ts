@@ -14,7 +14,7 @@ import {RegistryService} from '../../core/registry.service';
 import {SparqlService} from '../../core/sparql.service';
 import {Product, ProductKind, Term} from '../../core/models';
 import {ProductCardComponent} from '../../shared/product-card';
-import {TermMultiSelectComponent} from '../../shared/term-multi-select';
+import {TermDropdownComponent} from '../../shared/term-dropdown';
 import {TermSelectComponent} from '../../shared/term-select';
 import {TERM_CRITERIA, TermCriterion, matchesCriteria, valuesFor} from './criteria-match';
 
@@ -43,7 +43,7 @@ const EFFECTS: Effect[] = ['full', 'partial', 'side'];
 		MatTooltipModule,
 		ObAlertModule,
 		ProductCardComponent,
-		TermMultiSelectComponent,
+		TermDropdownComponent,
 		TermSelectComponent,
 		TranslatePipe
 	],

@@ -44,7 +44,9 @@
     "copy": "Kopieren",
     "dataSource": "Datenquelle",
     "error": "Die Daten konnten nicht geladen werden",
+    "filterOptions": "Einträge filtern",
     "loading": "Daten werden von LINDAS geladen",
+    "moreOptions": "{{count}} weitere – Suche verfeinern",
     "noOption": "Kein Eintrag gefunden",
     "noResults": "Keine Treffer",
     "noResultsHint": "Passen Sie die Suchbegriffe oder die Filter an.",
@@ -58,6 +60,7 @@
     "showMore": "Mehr anzeigen"
   },
   "filter": {
+    "any": "Alle",
     "applicationArea": "Anwendungsbereich",
     "country": "Herstellungsland",
     "crop": "Kultur",
@@ -168,19 +171,19 @@
   "registry": {
     "productType": {
       "Acaricide": "Akarizid",
-      "AntifungalBiologicalAgent": "Antifungales biologisches Mittel",
-      "BacterialBiologicalAgent": "Bakterielles biologisches Mittel",
+      "AntifungalBiologicalAgent": "Biomittel (antifungal)",
+      "BacterialBiologicalAgent": "Biomittel (Bakterien)",
       "Bactericide": "Bakterizid",
-      "BeneficialInsectAgent": "Nützlingspräparat (Insekten)",
-      "BeneficialMiteAgent": "Nützlingspräparat (Raubmilben)",
-      "BeneficialNematodeAgent": "Nützlingspräparat (Nematoden)",
-      "BiologicalControlAgent": "Biologisches Bekämpfungsmittel",
-      "ChemicalPlantProtectionProduct": "Chemisches Pflanzenschutzmittel",
+      "BeneficialInsectAgent": "Nützlinge (Insekten)",
+      "BeneficialMiteAgent": "Nützlinge (Raubmilben)",
+      "BeneficialNematodeAgent": "Nützlinge (Nematoden)",
+      "BiologicalControlAgent": "Biologisches Mittel",
+      "ChemicalPlantProtectionProduct": "Chemisches Mittel",
       "Disinfectant": "Desinfektionsmittel",
-      "FungalBiologicalAgent": "Pilzliches biologisches Mittel",
+      "FungalBiologicalAgent": "Biomittel (Pilze)",
       "Fungicide": "Fungizid",
       "Herbicide": "Herbizid",
-      "InsectVirusAgent": "Insektenvirus-Präparat",
+      "InsectVirusAgent": "Biomittel (Insektenviren)",
       "Insecticide": "Insektizid",
       "Molluscicide": "Molluskizid",
       "Nematicide": "Nematizid",
@@ -188,11 +191,11 @@
       "PlantDefenseInducer": "Resistenzinduktor",
       "PlantGrowthRegulator": "Wachstumsregulator",
       "Rodenticide": "Rodentizid",
-      "SeedTreatmentProduct": "Saatgutbehandlungsmittel",
-      "SoapBasedInsecticide": "Seifenhaltiges Insektizid",
-      "StorageProtectionProduct": "Vorratsschutzmittel",
+      "SeedTreatmentProduct": "Saatgutbehandlung",
+      "SoapBasedInsecticide": "Seifeninsektizid",
+      "StorageProtectionProduct": "Vorratsschutz",
       "Viricide": "Virizid",
-      "WettingAndAdhesionAgent": "Netz- und Haftmittel"
+      "WettingAndAdhesionAgent": "Netz-/Haftmittel"
     }
   },
   "search": {

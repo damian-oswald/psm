@@ -1,6 +1,6 @@
 import {Params} from '@angular/router';
 import {admissionStatus} from '../../core/format';
-import {Product} from '../../core/models';
+import {Product, ProductUse} from '../../core/models';
 
 /** Every facet the search page can constrain, plus the free-text query. */
 export interface Filters {
@@ -9,22 +9,37 @@ export interface Filters {
 	pests: string[];
 	holders: string[];
 	substances: string[];
-	types: string[];
 	statuses: string[];
 }
 
 /**
  * The facets of the search page, in the order it shows them.
  *
- * These six are the questions people arrive with: what am I growing, what is attacking it,
- * whose product is it, what is in it, what kind of product is it, and may it still be
- * used. Everything else the registry can be asked — application area, labelling,
- * obligations, formulation, admission type, country of production — is a specialist's
- * question and lives on the advanced query page.
+ * These five are the questions people arrive with: what am I growing, what is attacking it,
+ * whose product is it, what is in it, and may it still be used. Everything else the
+ * registry can be asked — product type, application area, labelling, obligations,
+ * formulation, admission type, country of production — is a specialist's question and
+ * lives on the advanced query page.
  */
-export const LIST_FACETS = ['crops', 'pests', 'holders', 'substances', 'types', 'statuses'] as const;
+export const LIST_FACETS = ['crops', 'pests', 'holders', 'substances', 'statuses'] as const;
 
 export type ListFacet = (typeof LIST_FACETS)[number];
+
+/**
+ * The facets that take one value at a time rather than a list.
+ *
+ * Every filter narrows, so two values of the same facet have to hold at once. A product
+ * has exactly one admission status and exactly one permission holder, so a second choice
+ * in either of these could only answer nothing. They are offered as a single choice, which
+ * also means that picking a value *replaces* the one before it — so their option counts
+ * are the only ones computed as if the facet were not set.
+ */
+export const SINGLE_FACETS: readonly ListFacet[] = ['holders', 'statuses'];
+
+/** The facets matched against the product as a whole, one value at a time. */
+const PLAIN_FACETS = ['holders', 'substances', 'statuses'] as const;
+
+type PlainFacet = (typeof PLAIN_FACETS)[number];
 
 export const EMPTY_FILTERS: Filters = {
 	text: '',
@@ -32,7 +47,6 @@ export const EMPTY_FILTERS: Filters = {
 	pests: [],
 	holders: [],
 	substances: [],
-	types: [],
 	statuses: []
 };
 
@@ -40,43 +54,41 @@ export function countActive(filters: Filters): number {
 	return LIST_FACETS.reduce((total, facet) => total + filters[facet].length, 0) + (filters.text ? 1 : 0);
 }
 
-/**
- * The values a product contributes to a facet, used both for matching and for counting.
- *
- * A crop contributes the crops above it in the hierarchy as well, so that asking for
- * `Getreide` finds the products admitted for `Winterweizen`. The advanced query page can
- * turn that off; here it is always on, because it is what a plain crop filter should mean.
- */
-export function valuesOf(product: Product, facet: ListFacet): readonly string[] {
+/** The values a product carries for a facet that is read off the product itself. */
+function valuesOf(product: Product, facet: PlainFacet): readonly string[] {
 	switch (facet) {
-		case 'crops':
-			return product.cropsWithParents;
-		case 'pests':
-			return product.pests;
 		case 'holders':
 			return product.holder ? [product.holder] : [];
 		case 'substances':
 			return product.substances;
-		case 'types':
-			return product.types;
 		case 'statuses':
 			return [admissionStatus(product)];
 	}
 }
 
 /**
- * Whether a product satisfies one facet.
+ * Whether a product satisfies the crop and the pest filter together.
  *
- * Within a facet the selected values are alternatives, because "Herbicide or Fungicide"
- * is the question people ask; across facets they are conditions, all of which must hold.
+ * The two are one question, not two: a crop and a pest have to meet in the *same* admitted
+ * use, or the answer would include a product registered against mildew in wheat for a
+ * grower asking about mildew in vines that the product only treats for something else.
+ * Several crops and several pests are asked pairwise — each crop with each pest — because
+ * "wheat and barley against mildew" is answered by two indications, one per crop, and
+ * hardly ever by a single one naming both.
  */
-export function matchesFacet(product: Product, facet: ListFacet, filters: Filters): boolean {
-	const selected = filters[facet];
-	if (!selected.length) {
+function matchesUses(product: Product, crops: string[], pests: string[]): boolean {
+	if (!crops.length && !pests.length) {
 		return true;
 	}
-	const values = valuesOf(product, facet);
-	return selected.some(value => values.includes(value));
+	if (!crops.length) {
+		return pests.every(pest => product.uses.some(use => use.pests.includes(pest)));
+	}
+	if (!pests.length) {
+		return crops.every(crop => product.uses.some(use => use.crops.includes(crop)));
+	}
+	return crops.every(crop =>
+		pests.every(pest => product.uses.some(use => use.crops.includes(crop) && use.pests.includes(pest)))
+	);
 }
 
 export function matchesText(product: Product, text: string): boolean {
@@ -89,11 +101,66 @@ export function matchesText(product: Product, text: string): boolean {
 		.every(word => product.haystack.includes(word));
 }
 
+/**
+ * Whether a product answers the whole question, optionally ignoring one facet.
+ *
+ * Every facet narrows: a second crop is another condition the product has to meet, not
+ * another crop that would do. `except` is there for the two single-choice facets, whose
+ * options are counted as if nothing were chosen in them, because choosing one replaces
+ * whatever was chosen before.
+ */
 export function matchesAll(product: Product, filters: Filters, except?: ListFacet): boolean {
 	if (!matchesText(product, filters.text)) {
 		return false;
 	}
-	return LIST_FACETS.every(facet => facet === except || matchesFacet(product, facet, filters));
+	for (const facet of PLAIN_FACETS) {
+		if (facet === except) {
+			continue;
+		}
+		const values = valuesOf(product, facet);
+		if (!filters[facet].every(value => values.includes(value))) {
+			return false;
+		}
+	}
+	return matchesUses(product, except === 'crops' ? [] : filters.crops, except === 'pests' ? [] : filters.pests);
+}
+
+/**
+ * The values of one facet that a matching product would still answer for.
+ *
+ * Counting these over the products that match *everything* is what makes the option lists
+ * honest under conjunctive filters: an option's number is how many products are left once
+ * it is added, so an option that would empty the result is never offered. For crop and
+ * pest that means reading the two together again — with a pest chosen, only the crops it
+ * is fought in are worth offering.
+ */
+export function candidateValues(product: Product, facet: ListFacet, filters: Filters): readonly string[] {
+	switch (facet) {
+		case 'crops':
+			return intersect(filters.pests, pest => usesAgainst(product, pest).flatMap(use => use.crops));
+		case 'pests':
+			return intersect(filters.crops, crop => usesOn(product, crop).flatMap(use => use.pests));
+		default:
+			return valuesOf(product, facet);
+	}
+}
+
+function usesOn(product: Product, crop: string): ProductUse[] {
+	return crop ? product.uses.filter(use => use.crops.includes(crop)) : product.uses;
+}
+
+function usesAgainst(product: Product, pest: string): ProductUse[] {
+	return pest ? product.uses.filter(use => use.pests.includes(pest)) : product.uses;
+}
+
+/** The values reachable through every one of `keys`, or through all uses when there is none. */
+function intersect(keys: string[], valuesOfKey: (key: string) => string[]): string[] {
+	let shared: Set<string> | undefined;
+	for (const key of keys.length ? keys : ['']) {
+		const values = new Set(valuesOfKey(key));
+		shared = shared ? new Set([...shared].filter(value => values.has(value))) : values;
+	}
+	return [...(shared ?? [])];
 }
 
 export type SortKey = 'relevance' | 'name' | 'number' | 'holder';

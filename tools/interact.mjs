@@ -63,25 +63,34 @@ await step('03-search-facet', async () => {
 		document.querySelector('input[name="query"]').value = '';
 	});
 	await page.click('button[aria-label], body');
-	await visit(`/products?types=Herbicide`);
+	await visit(`/products?statuses=authorised`);
 	await wait(3500);
 });
 
-await step('04-crop-autocomplete', async () => {
-	const inputs = await page.$$('app-term-select input');
-	await inputs[0].click();
-	await inputs[0].type('Weizen');
-	await wait(900);
+await step('04-crop-dropdown', async () => {
+	const selects = await page.$$('app-term-dropdown mat-select');
+	await selects[0].click();
+	await wait(700);
+	// A panel with more than a handful of options carries its own field to narrow them down.
+	await page.type('.term-search input', 'Winterweizen');
+	await wait(700);
 });
 
 await step('05-crop-selected', async () => {
-	await page.keyboard.press('ArrowDown');
-	await page.keyboard.press('Enter');
-	await wait(1200);
-	const chips = await page.evaluate(() =>
-		[...document.querySelectorAll('app-term-select mat-chip')].map(chip => chip.textContent.trim())
+	await page.evaluate(() => document.querySelector('mat-option').click());
+	await wait(600);
+	await page.keyboard.press('Escape');
+	await wait(900);
+	const fields = await page.evaluate(() =>
+		[...document.querySelectorAll('app-term-dropdown .mat-mdc-select-value')].map(value =>
+			value.textContent.trim().replace(/\s+/gu, ' ')
+		)
 	);
-	console.log(`        chips: ${JSON.stringify(chips)}`);
+	const badges = await page.evaluate(() =>
+		[...document.querySelectorAll('.search-badges mat-chip')].map(chip => chip.textContent.trim().replace(/\s+/gu, ' '))
+	);
+	console.log(`        fields: ${JSON.stringify(fields)}`);
+	console.log(`        active filters: ${JSON.stringify(badges)}`);
 });
 
 await step('06-detail', async () => {
@@ -107,8 +116,13 @@ await step('08-query-criteria', async () => {
 	await page.keyboard.press('ArrowDown');
 	await page.keyboard.press('Enter');
 	await wait(1200);
+	// The advanced query page keeps its selection as chips under the field.
+	const chips = await page.evaluate(() =>
+		[...document.querySelectorAll('app-term-select mat-chip')].map(chip => chip.textContent.trim())
+	);
+	console.log(`        chips: ${JSON.stringify(chips)}`);
 	// The dropdowns offer only what is still reachable under the criteria already set.
-	await page.click('app-term-multi-select mat-select');
+	await page.click('app-term-dropdown mat-select');
 	await wait(700);
 	const offered = await page.evaluate(() =>
 		[...document.querySelectorAll('mat-option')].map(option => option.textContent.trim().replace(/\s+/gu, ' '))
