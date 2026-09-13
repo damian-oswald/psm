@@ -19,16 +19,16 @@ import {
 	Filters,
 	LIST_FACETS,
 	ListFacet,
+	SINGLE_FACETS,
 	SortKey,
+	candidateValues,
 	compareProducts,
 	countActive,
 	fromParams,
 	matchesAll,
-	toParams,
-	valuesOf
+	toParams
 } from './filters';
-import {TermMultiSelectComponent} from '../../shared/term-multi-select';
-import {TermSelectComponent} from '../../shared/term-select';
+import {TermDropdownComponent} from '../../shared/term-dropdown';
 
 const PAGE_SIZES = [12, 24, 48, 96];
 const DEFAULT_PAGE_SIZE = 12;
@@ -36,10 +36,11 @@ const DEFAULT_PAGE_SIZE = 12;
 /**
  * The search page: a free-text field, a facet panel, and a paginated grid of products.
  *
- * All filtering happens against the in-memory index, so every keystroke and every
- * checkbox re-ranks 2363 products without a network round trip. The facet counts are
- * computed the way faceted search expects: each facet is counted over the products that
- * pass all the *other* filters, so selecting one value never empties its own list.
+ * All filtering happens against the in-memory index, so every keystroke and every choice
+ * re-ranks 2363 products without a network round trip. Every filter narrows: a second
+ * crop is another condition the product has to meet, not another crop that would do. The
+ * facet options follow from that — each one is counted as the result it would leave
+ * behind, so the panel only ever offers a value that still has products behind it.
  */
 @Component({
 	selector: 'app-product-search',
@@ -56,8 +57,7 @@ const DEFAULT_PAGE_SIZE = 12;
 		ObAlertModule,
 		RouterLink,
 		ProductCardComponent,
-		TermMultiSelectComponent,
-		TermSelectComponent,
+		TermDropdownComponent,
 		TranslatePipe
 	],
 	providers: [{provide: MatPaginatorIntl, useClass: ObPaginatorService}],
@@ -93,22 +93,41 @@ export class ProductSearchPage {
 		return this.matching().slice(start, start + this.pageSize());
 	});
 
-	/** Options of every facet, counted against the other facets' current selection. */
+	/**
+	 * Options of every facet, each counted as the result it would leave behind.
+	 *
+	 * The filters narrow one another, so an option's number is how many products remain
+	 * once it is added to everything already chosen — which keeps a question from being
+	 * narrowed to nothing one field at a time. The two single-choice facets are the
+	 * exception: a choice there replaces the one before it, so they are counted as if the
+	 * facet were not set, and every value stays reachable.
+	 */
 	readonly facetOptions = computed(() => {
 		const filters = this.filters();
 		const products = this.registry.products();
 		const options = {} as Record<ListFacet, Term[]>;
-		for (const facet of LIST_FACETS) {
-			const counts = new Map<string, number>();
-			for (const product of products) {
-				if (!matchesAll(product, filters, facet)) {
-					continue;
+		const counts = new Map<ListFacet, Map<string, number>>(LIST_FACETS.map(facet => [facet, new Map()]));
+		const count = (facet: ListFacet, product: Product): void => {
+			const values = counts.get(facet)!;
+			for (const value of candidateValues(product, facet, filters)) {
+				values.set(value, (values.get(value) ?? 0) + 1);
+			}
+		};
+		for (const product of products) {
+			if (matchesAll(product, filters)) {
+				for (const facet of LIST_FACETS) {
+					count(facet, product);
 				}
-				for (const value of valuesOf(product, facet)) {
-					counts.set(value, (counts.get(value) ?? 0) + 1);
+			} else {
+				for (const facet of SINGLE_FACETS) {
+					if (matchesAll(product, filters, facet)) {
+						count(facet, product);
+					}
 				}
 			}
-			options[facet] = this.decorate(facet, counts, filters[facet]);
+		}
+		for (const facet of LIST_FACETS) {
+			options[facet] = this.decorate(facet, counts.get(facet)!, filters[facet]);
 		}
 		return options;
 	});
@@ -208,8 +227,6 @@ export class ProductSearchPage {
 				return this.registry.holders();
 			case 'substances':
 				return this.registry.substances();
-			case 'types':
-				return this.registry.productTypes();
 			case 'statuses':
 				return undefined;
 		}
@@ -226,6 +243,5 @@ const FACET_LABELS: Record<ListFacet, string> = {
 	pests: 'filter.pest',
 	holders: 'filter.holder',
 	substances: 'filter.substance',
-	types: 'filter.productType',
 	statuses: 'filter.status'
 };

@@ -40,7 +40,7 @@
 					[selected]="criteria().applicationAreas"
 					(selectedChange)="update('applicationAreas', $event)"
 				/>
-				<app-term-multi-select
+				<app-term-dropdown
 					[labelKey]="'filter.productType'"
 					[options]="typeOptions()"
 					[selected]="criteria().productTypes"
@@ -78,13 +78,13 @@
 					[selected]="criteria().holders"
 					(selectedChange)="update('holders', $event)"
 				/>
-				<app-term-multi-select
+				<app-term-dropdown
 					[labelKey]="'filter.kind'"
 					[options]="kindOptions()"
 					[selected]="criteria().kinds"
 					(selectedChange)="updateKinds($event)"
 				/>
-				<app-term-multi-select
+				<app-term-dropdown
 					[labelKey]="'filter.country'"
 					[options]="countryOptions()"
 					[selected]="criteria().countries"

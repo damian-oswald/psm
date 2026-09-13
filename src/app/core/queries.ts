@@ -52,19 +52,20 @@ GROUP BY ?product ?name ?admissionNumber ?kindIri ?countryIri ?holderIri ?holder
   ?exhaustionDeadline ?soldOutDeadline`;
 
 /**
- * The crops, pests, application areas and obligations reachable from each product.
+ * One row per indication: the crops it covers, and the pests it covers them against.
  *
- * Flattened per product on purpose: it answers "which products may be used on wheat"
- * in a single pass over memory. Questions that need crop and pest to meet in the *same*
- * indication are answered by {@link buildAdvancedQuery} on the endpoint instead.
+ * Per indication rather than per product, because a crop and a pest only say something
+ * together when they meet in one and the same admitted use: a product registered against
+ * mildew in wheat is not thereby registered against mildew in the vines it also lists.
+ * 7848 indications over 1107 products are small enough to hold in memory, so the search
+ * page can apply that rule itself instead of asking the endpoint.
  */
 export const PRODUCT_USE_INDEX_QUERY = `${PREFIXES}
 SELECT
   (STRAFTER(STR(?product), "/product/") AS ?id)
+  (${local('area')} AS ?applicationArea)
   (GROUP_CONCAT(DISTINCT ${local('crop')}; separator=",") AS ?crops)
   (GROUP_CONCAT(DISTINCT ${local('pest')}; separator=",") AS ?pests)
-  (GROUP_CONCAT(DISTINCT ${local('area')}; separator=",") AS ?applicationAreas)
-  (GROUP_CONCAT(DISTINCT ${local('obligation')}; separator=",") AS ?obligations)
 ${FROM}
 WHERE {
   ?indication a ppp:Indication ;
@@ -72,7 +73,26 @@ WHERE {
     ppp:applicationArea ?area .
   OPTIONAL { ?indication ppp:crop ?crop }
   OPTIONAL { ?indication ppp:pest ?pest }
-  OPTIONAL { ?indication ppp:obligation ?obligation }
+}
+GROUP BY ?indication ?product ?area`;
+
+/**
+ * The obligations reachable from each product, flattened.
+ *
+ * Their own query, and not a column of the one above: obligations are the bulk of what an
+ * indication carries, and no page asks which indication an obligation belongs to — only
+ * the advanced query page uses them, and only to count what is still reachable. Repeating
+ * them on every one of the 7848 indication rows would have doubled the start-up payload.
+ */
+export const PRODUCT_OBLIGATION_INDEX_QUERY = `${PREFIXES}
+SELECT
+  (STRAFTER(STR(?product), "/product/") AS ?id)
+  (GROUP_CONCAT(DISTINCT ${local('obligation')}; separator=",") AS ?obligations)
+${FROM}
+WHERE {
+  ?indication a ppp:Indication ;
+    ppp:product ?product ;
+    ppp:obligation ?obligation .
 }
 GROUP BY ?product`;
 

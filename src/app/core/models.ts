@@ -23,6 +23,8 @@ export interface Crop extends Term {
 	parents: string[];
 	/** Transitive closure of {@link parents}, root first. */
 	ancestors: string[];
+	/** Every crop that has this one among its {@link ancestors}. */
+	descendants: string[];
 }
 
 /** A `schema:QuantitativeValue`: a value, a range, or a bounded range, with a unit. */
@@ -31,6 +33,20 @@ export interface Quantity {
 	min?: number;
 	max?: number;
 	unit?: string;
+}
+
+/**
+ * One admitted use of a product, as the search index keeps it.
+ *
+ * The crops are widened to the whole branch they sit on: a use registered for `Feldbau
+ * allg.` is an answer to a question about `Trockenreis`, which is part of it, and a use
+ * registered for `Winterweizen` is an answer to a question about `Getreide`, which it is
+ * part of. The pests stay as they are — they carry no hierarchy.
+ */
+export interface ProductUse {
+	/** The use's crops, together with every crop above and below them in the hierarchy. */
+	crops: string[];
+	pests: string[];
 }
 
 /** One admitted use of a product: a crop, a pest, and the conditions that apply. */
@@ -68,6 +84,8 @@ export interface Product {
 	referenceProduct?: string;
 	/** True when the uses below are the reference product's rather than the product's own. */
 	usesInherited: boolean;
+	/** The product's admitted uses, each keeping its own crops and pests together. */
+	uses: ProductUse[];
 	/** Crops of the product's own indications, or of its reference product's. */
 	crops: string[];
 	/** Transitive closure of {@link crops} over the crop hierarchy. */

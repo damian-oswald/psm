@@ -19,8 +19,12 @@ browser.
 
 ## What it does
 
-- **Search** — free text plus six filters (crop, pest, permission holder, active substance, product type, admission
-  status) over all 2363 products, with the filters mirrored in the URL so a result list can be shared.
+- **Search** — free text plus five dropdown filters (crop, pest, permission holder, active substance, admission status)
+  over all 2363 products, with the filters mirrored in the URL so a result list can be shared. Every filter narrows: a
+  second crop is another condition the product has to meet, not another crop that would do. A crop covers the whole
+  branch it sits on, above and below — asking for `Trockenreis` finds what is admitted for `Feldbau allg.`, which it is
+  part of — and a crop and a pest have to meet in the same indication to count. Each option is counted as the result it
+  would leave behind, so a value that would empty the list is never offered.
 - **Product detail** — one reading column: what the product is, who holds its admission and what is in it, how it is
   labelled, and its indications, which can be narrowed by crop and by pest.
 - **Advanced query** — structured criteria compiled into SPARQL and run against LINDAS. Every criterion names a *thing*
@@ -35,7 +39,7 @@ browser.
 | Named graph | `https://lindas.admin.ch/fsvo/plant-protection-products` |
 | Data model | [`model.shacl.ttl`](model.shacl.ttl) |
 
-Three queries at start-up (about 600 kB gzipped) put the whole registry in memory, so searching, filtering and faceting
+Five queries at start-up (about 850 kB gzipped) put the whole registry in memory, so searching, filtering and faceting
 never touch the network again. Only the detail view and the advanced query go back to the endpoint.
 
 A few properties of the data that shaped the code:
@@ -46,6 +50,10 @@ A few properties of the data that shaped the code:
 - `ppp:fullEffect` and its siblings refine `ppp:pest`, so each pest is resolved once and annotated with its effect.
 - Sale permissions and parallel imports carry no indications of their own and inherit their reference product's.
 - A few concepts exist twice under different IRIs and are folded into one, so a filter finds the products of both.
+- Crops form a shallow `schema:isPartOf` hierarchy, which the search index widens in both directions so that a filter
+  matches a whole branch rather than one node of it.
+- The indication index is read one row per indication rather than one per product, because a crop filter and a pest
+  filter only mean something together when the two meet in the same admitted use.
 - Hazard pictograms have no image in the graph, so the public-domain UN SVGs from Wikimedia Commons are bundled under `src/assets/ghs` and picked by their code.
 
 ## Running it

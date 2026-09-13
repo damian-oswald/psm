@@ -44,7 +44,9 @@
     "copy": "Copia",
     "dataSource": "Fonte dei dati",
     "error": "Non è stato possibile caricare i dati",
+    "filterOptions": "Filtra le voci",
     "loading": "Caricamento dei dati da LINDAS",
+    "moreOptions": "{{count}} altre – affina la ricerca",
     "noOption": "Nessuna voce trovata",
     "noResults": "Nessun risultato",
     "noResultsHint": "Modificare i termini di ricerca o i filtri.",
@@ -58,6 +60,7 @@
     "showMore": "Mostra altro"
   },
   "filter": {
+    "any": "Tutti",
     "applicationArea": "Settore d'impiego",
     "country": "Paese di produzione",
     "crop": "Coltura",
@@ -168,19 +171,19 @@
   "registry": {
     "productType": {
       "Acaricide": "Acaricida",
-      "AntifungalBiologicalAgent": "Agente biologico antifungino",
-      "BacterialBiologicalAgent": "Agente biologico batterico",
+      "AntifungalBiologicalAgent": "Biologico (antifungino)",
+      "BacterialBiologicalAgent": "Biologico (batteri)",
       "Bactericide": "Battericida",
-      "BeneficialInsectAgent": "Preparato di ausiliari (insetti)",
-      "BeneficialMiteAgent": "Preparato di ausiliari (acari)",
-      "BeneficialNematodeAgent": "Preparato di ausiliari (nematodi)",
-      "BiologicalControlAgent": "Agente di lotta biologica",
-      "ChemicalPlantProtectionProduct": "Prodotto fitosanitario chimico",
+      "BeneficialInsectAgent": "Ausiliari (insetti)",
+      "BeneficialMiteAgent": "Ausiliari (acari)",
+      "BeneficialNematodeAgent": "Ausiliari (nematodi)",
+      "BiologicalControlAgent": "Agente biologico",
+      "ChemicalPlantProtectionProduct": "Prodotto chimico",
       "Disinfectant": "Disinfettante",
-      "FungalBiologicalAgent": "Agente biologico fungino",
+      "FungalBiologicalAgent": "Biologico (funghi)",
       "Fungicide": "Fungicida",
       "Herbicide": "Erbicida",
-      "InsectVirusAgent": "Preparato a base di virus di insetti",
+      "InsectVirusAgent": "Biologico (virus di insetti)",
       "Insecticide": "Insetticida",
       "Molluscicide": "Molluschicida",
       "Nematicide": "Nematocida",
@@ -188,11 +191,11 @@
       "PlantDefenseInducer": "Induttore di resistenza",
       "PlantGrowthRegulator": "Regolatore di crescita",
       "Rodenticide": "Rodenticida",
-      "SeedTreatmentProduct": "Prodotto per il trattamento delle sementi",
-      "SoapBasedInsecticide": "Insetticida a base di sapone",
-      "StorageProtectionProduct": "Prodotto per la protezione delle derrate",
+      "SeedTreatmentProduct": "Trattamento sementi",
+      "SoapBasedInsecticide": "Insetticida al sapone",
+      "StorageProtectionProduct": "Protezione derrate",
       "Viricide": "Viricida",
-      "WettingAndAdhesionAgent": "Bagnante e adesivante"
+      "WettingAndAdhesionAgent": "Bagnante/adesivante"
     }
   },
   "search": {

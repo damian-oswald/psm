@@ -2,8 +2,14 @@ import {Injectable, computed, inject, signal} from '@angular/core';
 import {TranslateService} from '@ngx-translate/core';
 import {forkJoin, of} from 'rxjs';
 import {catchError, map, tap} from 'rxjs/operators';
-import {Crop, LabelElement, LabelElementKind, Product, ProductKind, Term} from './models';
-import {PRODUCT_INDEX_QUERY, PRODUCT_USE_INDEX_QUERY, countriesQuery, termsQuery} from './queries';
+import {Crop, LabelElement, LabelElementKind, Product, ProductKind, ProductUse, Term} from './models';
+import {
+	PRODUCT_INDEX_QUERY,
+	PRODUCT_OBLIGATION_INDEX_QUERY,
+	PRODUCT_USE_INDEX_QUERY,
+	countriesQuery,
+	termsQuery
+} from './queries';
 import {Row, SparqlService, splitList} from './sparql.service';
 
 /** The 23 product type classes, in the order the data model lists them. */
@@ -48,10 +54,10 @@ const LABEL_ELEMENT_KINDS: Record<string, LabelElementKind> = {
 /**
  * Holds the whole registry in memory and keeps its labels in the active language.
  *
- * Three queries are enough to answer every question the search page asks: the product
- * index, the crops and pests each product may be used against, and the code list labels.
- * Together they are around 600 kB gzipped and take about two seconds to load once, after
- * which searching, filtering and faceting never touch the network again.
+ * Four queries are enough to answer every question the search page asks: the product
+ * index, the indications each product carries, the obligations they attach, and the code
+ * list labels. Together they are around 850 kB gzipped and take about two seconds to load
+ * once, after which searching, filtering and faceting never touch the network again.
  */
 @Injectable({providedIn: 'root'})
 export class RegistryService {
@@ -127,6 +133,7 @@ export class RegistryService {
 		forkJoin({
 			products: this.sparql.query(PRODUCT_INDEX_QUERY),
 			uses: this.sparql.query(PRODUCT_USE_INDEX_QUERY),
+			obligations: this.sparql.query(PRODUCT_OBLIGATION_INDEX_QUERY),
 			terms: this.sparql.query(termsQuery(this.language())),
 			countries: this.sparql.query(countriesQuery(this.language()))
 		})
@@ -135,7 +142,7 @@ export class RegistryService {
 					this.applyTerms(terms);
 					this.applyCountries(countries);
 				}),
-				map(({products, uses}) => this.buildProducts(products, uses)),
+				map(({products, uses, obligations}) => this.buildProducts(products, uses, obligations)),
 				catchError((error: Error) => {
 					this.error.set(error.message);
 					this.status.set('error');
@@ -211,7 +218,8 @@ export class RegistryService {
 					crops.set(id, {
 						...term,
 						parents: splitList(row['parents']).map(parent => canonicalIds.get(parent) ?? parent),
-						ancestors: []
+						ancestors: [],
+						descendants: []
 					});
 					break;
 				case 'Pest':
@@ -253,10 +261,42 @@ export class RegistryService {
 		this.labelElements.set(labelElements);
 	}
 
-	private buildProducts(productRows: Row[], useRows: Row[]): Product[] {
-		const uses = new Map(useRows.map(row => [row['id'], row]));
+	private buildProducts(productRows: Row[], useRows: Row[], obligationRows: Row[]): Product[] {
 		const crops = this.crops();
 		const canonical = (ids: string[]): string[] => [...new Set(ids.map(id => this.canonical(id)))];
+		const uses = new Map<string, ProductUse[]>();
+		const ownCrops = new Map<string, Set<string>>();
+		const ownPests = new Map<string, Set<string>>();
+		const ownAreas = new Map<string, Set<string>>();
+		const collect = (into: Map<string, Set<string>>, id: string, values: string[]): void => {
+			let target = into.get(id);
+			if (!target) {
+				target = new Set<string>();
+				into.set(id, target);
+			}
+			for (const value of values) {
+				target.add(value);
+			}
+		};
+
+		for (const row of useRows) {
+			const id = row['id'];
+			const rowCrops = canonical(splitList(row['crops']));
+			const rowPests = canonical(splitList(row['pests']));
+			// The crops of a use are widened to the whole branch; the product level keeps
+			// the crops as they are, because the advanced query page distinguishes them.
+			const use: ProductUse = {crops: withRelatives(rowCrops, crops), pests: rowPests};
+			const known = uses.get(id);
+			if (known) {
+				known.push(use);
+			} else {
+				uses.set(id, [use]);
+			}
+			collect(ownCrops, id, rowCrops);
+			collect(ownPests, id, rowPests);
+			collect(ownAreas, id, [this.canonical(row['applicationArea'])]);
+		}
+		const obligations = new Map(obligationRows.map(row => [row['id'], canonical(splitList(row['obligations']))]));
 
 		const products = productRows.map<Product>(row => ({
 			id: row['id'],
@@ -274,6 +314,7 @@ export class RegistryService {
 			soldOutDeadline: row['soldOutDeadline'],
 			referenceProduct: row['referenceProduct'],
 			usesInherited: false,
+			uses: [],
 			crops: [],
 			cropsWithParents: [],
 			pests: [],
@@ -286,14 +327,16 @@ export class RegistryService {
 		// admitted on the strength of a reference product and inherit all of its uses.
 		for (const product of products) {
 			const own = uses.get(product.id);
-			const inherited = own ?? (product.referenceProduct ? uses.get(product.referenceProduct) : undefined);
+			const source = own ? product.id : (product.referenceProduct ?? '');
+			const inherited = own ?? uses.get(source);
 			product.usesInherited = !own && !!inherited;
 			if (inherited) {
-				product.crops = canonical(splitList(inherited['crops']));
-				product.pests = canonical(splitList(inherited['pests']));
-				product.applicationAreas = canonical(splitList(inherited['applicationAreas']));
-				product.obligations = canonical(splitList(inherited['obligations']));
+				product.uses = inherited;
+				product.crops = [...(ownCrops.get(source) ?? [])];
 				product.cropsWithParents = withAncestors(product.crops, crops);
+				product.pests = [...(ownPests.get(source) ?? [])];
+				product.applicationAreas = [...(ownAreas.get(source) ?? [])];
+				product.obligations = obligations.get(source) ?? [];
 			}
 			product.haystack = this.haystack(product);
 		}
@@ -337,7 +380,7 @@ function resolveDuplicates(rows: Row[]): Map<string, string> {
 	return canonicalIds;
 }
 
-/** Fills in the transitive parents of every crop, so filters can match a whole branch. */
+/** Fills in the transitive parents and children of every crop, so a filter can match a whole branch. */
 function resolveAncestors(crops: Map<string, Crop>): void {
 	const resolve = (id: string, seen: Set<string>): string[] => {
 		const crop = crops.get(id);
@@ -349,6 +392,12 @@ function resolveAncestors(crops: Map<string, Crop>): void {
 	};
 	for (const crop of crops.values()) {
 		crop.ancestors = [...new Set(resolve(crop.id, new Set()))];
+		crop.descendants = [];
+	}
+	for (const crop of crops.values()) {
+		for (const ancestor of crop.ancestors) {
+			crops.get(ancestor)?.descendants.push(crop.id);
+		}
 	}
 }
 
@@ -358,6 +407,27 @@ function withAncestors(ids: string[], crops: Map<string, Crop>): string[] {
 		all.add(id);
 		for (const ancestor of crops.get(id)?.ancestors ?? []) {
 			all.add(ancestor);
+		}
+	}
+	return [...all];
+}
+
+/**
+ * Widens a set of crops to the whole branch each of them sits on.
+ *
+ * A use registered for a crop answers a question about every crop above it — `Getreide`
+ * is answered by a use for `Winterweizen` — and about every crop below it, because a use
+ * registered for the group covers each of its members: a product admitted for `Feldbau
+ * allg.` may be used on `Trockenreis`, which is part of it. Siblings stay apart: a shared
+ * parent is not a reason for a use on one of them to answer for the other.
+ */
+function withRelatives(ids: string[], crops: Map<string, Crop>): string[] {
+	const all = new Set<string>();
+	for (const id of ids) {
+		all.add(id);
+		const crop = crops.get(id);
+		for (const relative of [...(crop?.ancestors ?? []), ...(crop?.descendants ?? [])]) {
+			all.add(relative);
 		}
 	}
 	return [...all];
