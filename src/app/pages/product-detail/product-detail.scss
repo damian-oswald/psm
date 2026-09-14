@@ -130,15 +130,23 @@ h3 {
 	gap: ob.$ob-spacing-md;
 	margin-bottom: ob.$ob-spacing-sm;
 
-	app-term-select {
+	app-term-dropdown {
 		flex: 1 1 16rem;
 		max-width: 22rem;
 	}
 }
 
-.detail-count {
-	margin: 0;
-	font-size: 0.875rem;
+/**
+ * Undoes the two filters beside it.
+ *
+ * It carries Oblique's dark grey while there is something to undo and falls back to the
+ * button's own disabled light grey when there is not, so that the row says at a glance
+ * whether the indications below are the whole list or a part of it.
+ */
+.detail-reset {
+	flex: 0 0 auto;
+	--mat-button-filled-container-color: #{ob.$ob-gray-dark};
+	--mat-button-filled-label-text-color: #{ob.$ob-white};
 }
 
 .detail-inherited {

@@ -20,7 +20,7 @@ import {RegistryService} from '../../core/registry.service';
 import {SparqlService, splitList} from '../../core/sparql.service';
 import {GhsPictogramComponent} from '../../shared/ghs-pictogram';
 import {StatusBadgeComponent} from '../../shared/status-badge';
-import {TermSelectComponent} from '../../shared/term-select';
+import {TermDropdownComponent} from '../../shared/term-dropdown';
 
 interface Ingredient {
 	substance: Term;
@@ -53,7 +53,7 @@ interface IndicationGroup {
 		ObExternalLinkModule,
 		RouterLink,
 		StatusBadgeComponent,
-		TermSelectComponent,
+		TermDropdownComponent,
 		TranslatePipe
 	],
 	templateUrl: './product-detail.html',
@@ -131,27 +131,43 @@ export class ProductDetailPage {
 	readonly hazardStatements = computed(() => this.byKind('HazardStatement'));
 	readonly plantProtectionStatements = computed(() => this.byKind('PlantProtectionStatement'));
 
+	/**
+	 * The indications the two filters leave standing.
+	 *
+	 * Both filters narrow, and they narrow the same row: an indication is kept only if it
+	 * names every crop that was picked and every pest that was picked. A crop and a pest
+	 * therefore have to meet in one and the same admitted use here too, which is the whole
+	 * point of asking for them together.
+	 */
+	readonly matchingIndications = computed(() => {
+		const crops = this.cropFilter();
+		const pests = this.pestFilter();
+		return this.indications().filter(
+			indication =>
+				crops.every(id => indication.crops.includes(id)) &&
+				pests.every(id => indication.pests.some(pest => pest.id === id))
+		);
+	});
+
 	/** Crops that occur in this product's indications, for the in-page filter. */
-	readonly cropOptions = computed(() => this.indicationOptions(indication => indication.crops, this.registry.crops()));
+	readonly cropOptions = computed(() =>
+		this.indicationOptions(indication => indication.crops, this.registry.crops(), this.cropFilter())
+	);
 
 	/** Pests likewise, so a long list of indications can be narrowed from either side. */
 	readonly pestOptions = computed(() =>
-		this.indicationOptions(indication => indication.pests.map(pest => pest.id), this.registry.pests())
+		this.indicationOptions(
+			indication => indication.pests.map(pest => pest.id),
+			this.registry.pests(),
+			this.pestFilter()
+		)
 	);
 
 	readonly indicationGroups = computed<IndicationGroup[]>(() => {
 		const areas = this.registry.applicationAreas();
 		const crops = this.registry.crops();
-		const selectedCrops = this.cropFilter();
-		const selectedPests = this.pestFilter();
 		const groups = new Map<string, Indication[]>();
-		for (const indication of this.indications()) {
-			if (selectedCrops.length && !indication.crops.some(id => selectedCrops.includes(id))) {
-				continue;
-			}
-			if (selectedPests.length && !indication.pests.some(pest => selectedPests.includes(pest.id))) {
-				continue;
-			}
+		for (const indication of this.matchingIndications()) {
 			const list = groups.get(indication.applicationArea) ?? [];
 			list.push(indication);
 			groups.set(indication.applicationArea, list);
@@ -166,9 +182,8 @@ export class ProductDetailPage {
 			.sort((left, right) => (left.area.code ?? '').localeCompare(right.area.code ?? ''));
 	});
 
-	readonly visibleIndicationCount = computed(() =>
-		this.indicationGroups().reduce((total, group) => total + group.indications.length, 0)
-	);
+	/** Whether either indication filter holds anything, so that there is something to undo. */
+	readonly indicationFiltersActive = computed(() => this.cropFilter().length > 0 || this.pestFilter().length > 0);
 
 	readonly lindasLink = computed(() => `https://agriculture.ld.admin.ch/plant-protection/product/${this.id()}`);
 
@@ -182,10 +197,21 @@ export class ProductDetailPage {
 
 	}
 
-	/** Counts how often each term of an indication field occurs, for an in-page filter. */
-	private indicationOptions(pick: (indication: Indication) => string[], labels: Map<string, Term>): Term[] {
-		const counts = new Map<string, number>();
-		for (const indication of this.indications()) {
+	/**
+	 * The values an in-page filter can still be narrowed by, with what each would leave.
+	 *
+	 * Counted over the rows that pass *both* filters, so an option's number is how many
+	 * indications remain once it is added — and a term that no remaining row names is not
+	 * offered at all. What is already picked stays in the list whatever its count, since
+	 * the dropdown reads its selection off the options it is given.
+	 */
+	private indicationOptions(
+		pick: (indication: Indication) => string[],
+		labels: Map<string, Term>,
+		selected: string[]
+	): Term[] {
+		const counts = new Map<string, number>(selected.map(id => [id, 0]));
+		for (const indication of this.matchingIndications()) {
 			for (const id of pick(indication)) {
 				counts.set(id, (counts.get(id) ?? 0) + 1);
 			}
@@ -243,6 +269,11 @@ export class ProductDetailPage {
 
 	toggle(id: string): void {
 		this.expanded.update(current => (current === id ? undefined : id));
+	}
+
+	resetIndicationFilters(): void {
+		this.cropFilter.set([]);
+		this.pestFilter.set([]);
 	}
 
 	private byKind(kind: LabelElement['kind']): LabelElement[] {
