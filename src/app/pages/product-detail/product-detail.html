@@ -166,21 +166,28 @@
 				}
 
 				<div class="detail-indication-filters">
-					<app-term-select
+					<app-term-dropdown
 						[labelKey]="'filter.crop'"
 						[options]="cropOptions()"
 						[selected]="cropFilter()"
 						(selectedChange)="cropFilter.set($event)"
 					/>
-					<app-term-select
+					<app-term-dropdown
 						[labelKey]="'filter.pest'"
 						[options]="pestOptions()"
 						[selected]="pestFilter()"
 						(selectedChange)="pestFilter.set($event)"
 					/>
-					<p class="detail-count app-muted">
-						{{ 'product.indicationCount' | translate: {count: visibleIndicationCount()} }}
-					</p>
+					<button
+						class="detail-reset"
+						mat-flat-button
+						type="button"
+						[disabled]="!indicationFiltersActive()"
+						(click)="resetIndicationFilters()"
+					>
+						<mat-icon svgIcon="xmark" />
+						{{ 'common.resetFilters' | translate }}
+					</button>
 				</div>
 
 				@for (group of indicationGroups(); track group.area.id) {
