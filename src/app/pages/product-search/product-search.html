@@ -103,6 +103,29 @@
 						</mat-select>
 					</mat-form-field>
 
+					<mat-button-toggle-group
+						class="search-view"
+						hideSingleSelectionIndicator
+						[attr.aria-label]="'search.viewLabel' | translate"
+						[value]="view()"
+						(change)="view.set($event.value)"
+					>
+						<mat-button-toggle
+							value="cards"
+							[matTooltip]="'search.view.cards' | translate"
+							[attr.aria-label]="'search.view.cards' | translate"
+						>
+							<mat-icon svgIcon="grid" />
+						</mat-button-toggle>
+						<mat-button-toggle
+							value="table"
+							[matTooltip]="'search.view.table' | translate"
+							[attr.aria-label]="'search.view.table' | translate"
+						>
+							<mat-icon svgIcon="list" />
+						</mat-button-toggle>
+					</mat-button-toggle-group>
+
 					<button
 						class="search-panel-toggle"
 						mat-stroked-button
@@ -139,11 +162,15 @@
 				</p>
 
 				@if (matching().length) {
-					<div class="search-grid">
-						@for (product of pageProducts(); track product.id) {
-							<app-product-card [product]="product" />
-						}
-					</div>
+					@if (view() === 'table') {
+						<app-product-table [products]="pageProducts()" />
+					} @else {
+						<div class="search-grid">
+							@for (product of pageProducts(); track product.id) {
+								<app-product-card [product]="product" />
+							}
+						</div>
+					}
 
 					<mat-paginator
 						[length]="matching().length"

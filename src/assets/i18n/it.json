@@ -108,6 +108,7 @@
     "activeSubstances": "Sostanze attive",
     "admissionNumber": "Numero di omologazione",
     "applicationArea": "Settore d'impiego",
+    "category": "Categoria",
     "comments": "Commenti d'impiego",
     "country": "Paese di produzione",
     "crop": "Coltura",
@@ -128,6 +129,7 @@
     "inheritedIndications": "Le indicazioni provengono dal prodotto di riferimento {{name}}.",
     "labelling": "Etichettatura",
     "linkedData": "Apri come Linked Data",
+    "name": "Prodotto",
     "noIndications": "Per questo prodotto non sono registrate indicazioni.",
     "notFound": "Questo prodotto non è stato trovato.",
     "obligations": "Oneri",
@@ -218,7 +220,12 @@
       "number": "Numero di omologazione",
       "relevance": "Corrispondenza migliore"
     },
-    "sortLabel": "Ordinamento"
+    "sortLabel": "Ordinamento",
+    "view": {
+      "cards": "Schede",
+      "table": "Tabella"
+    },
+    "viewLabel": "Visualizzazione"
   },
   "status": {
     "authorised": "Omologato",

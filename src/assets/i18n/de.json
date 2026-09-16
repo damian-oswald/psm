@@ -108,6 +108,7 @@
     "activeSubstances": "Wirkstoffe",
     "admissionNumber": "Bewilligungsnummer",
     "applicationArea": "Anwendungsbereich",
+    "category": "Kategorie",
     "comments": "Anwendungskommentare",
     "country": "Herstellungsland",
     "crop": "Kultur",
@@ -128,6 +129,7 @@
     "inheritedIndications": "Die Indikationen stammen vom Referenzprodukt {{name}}.",
     "labelling": "Kennzeichnung",
     "linkedData": "Als Linked Data öffnen",
+    "name": "Produkt",
     "noIndications": "Für dieses Produkt sind keine Indikationen erfasst.",
     "notFound": "Dieses Produkt wurde nicht gefunden.",
     "obligations": "Auflagen",
@@ -218,7 +220,12 @@
       "number": "Bewilligungsnummer",
       "relevance": "Beste Übereinstimmung"
     },
-    "sortLabel": "Sortierung"
+    "sortLabel": "Sortierung",
+    "view": {
+      "cards": "Kacheln",
+      "table": "Tabelle"
+    },
+    "viewLabel": "Darstellung"
   },
   "status": {
     "authorised": "Zugelassen",

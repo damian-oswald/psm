@@ -108,6 +108,7 @@
     "activeSubstances": "Active substances",
     "admissionNumber": "Admission number",
     "applicationArea": "Application area",
+    "category": "Category",
     "comments": "Application comments",
     "country": "Country of production",
     "crop": "Crop",
@@ -128,6 +129,7 @@
     "inheritedIndications": "The indications are those of the reference product {{name}}.",
     "labelling": "Labelling",
     "linkedData": "Open as linked data",
+    "name": "Product",
     "noIndications": "No indications are recorded for this product.",
     "notFound": "This product was not found.",
     "obligations": "Obligations",
@@ -218,7 +220,12 @@
       "number": "Admission number",
       "relevance": "Best match"
     },
-    "sortLabel": "Sort order"
+    "sortLabel": "Sort order",
+    "view": {
+      "cards": "Cards",
+      "table": "Table"
+    },
+    "viewLabel": "View"
   },
   "status": {
     "authorised": "Authorised",
