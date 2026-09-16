@@ -1,5 +1,5 @@
 import {Product} from '../../core/models';
-import {AdvancedCriteria} from '../../core/advanced-query';
+import {AdvancedCriteria, COMBINABLE_CRITERIA, CombinableCriterion} from '../../core/advanced-query';
 
 /** The criteria that name a term and therefore need a dropdown of reachable values. */
 export const TERM_CRITERIA = [
@@ -56,18 +56,27 @@ export function valuesFor(product: Product, criterion: TermCriterion, criteria: 
 }
 
 /** True when the criterion excludes the products that carry its values rather than keeping them. */
-function isExclusion(criterion: TermCriterion): boolean {
+export function isExclusion(criterion: TermCriterion): boolean {
 	return criterion.startsWith('excluded');
+}
+
+export function isCombinable(criterion: TermCriterion): criterion is CombinableCriterion {
+	return (COMBINABLE_CRITERIA as readonly string[]).includes(criterion);
+}
+
+/** Whether the criterion's values must all hold; single choices hold one value, which is the same thing. */
+function needsAll(criterion: TermCriterion, criteria: AdvancedCriteria): boolean {
+	return !isCombinable(criterion) || criteria.combinations[criterion] === 'and';
 }
 
 /**
  * Whether a product can still satisfy the criteria, ignoring one of them.
  *
  * This is a product-level approximation of the query the page builds: it applies every
- * criterion that names a term, but not the refinements the endpoint alone can evaluate —
- * that crop and pest meet in the *same* indication, the kind of effect, and the waiting
- * period. It exists to keep the dropdowns honest about what is still reachable, so a
- * question is not narrowed to nothing one field at a time.
+ * criterion that names a term, combined as the page asks, but not the refinements the
+ * endpoint alone can evaluate — that crop and pest meet in the *same* indication, the kind
+ * of effect, and the waiting period. It exists to keep the dropdowns honest about what is
+ * still reachable, so a question is not narrowed to nothing one field at a time.
  */
 export function matchesCriteria(product: Product, criteria: AdvancedCriteria, except?: TermCriterion): boolean {
 	if (criteria.onlyWithoutDeadline && product.exhaustionDeadline) {
@@ -82,17 +91,11 @@ export function matchesCriteria(product: Product, criteria: AdvancedCriteria, ex
 			continue;
 		}
 		const values = valuesFor(product, criterion, criteria);
-		if (isExclusion(criterion)) {
-			// Every excluded term must be absent.
-			if (selected.some(value => values.includes(value))) {
-				return false;
-			}
-		} else if (criterion === 'substances' || criterion === 'labelElements' || criterion === 'obligations') {
-			// These are conjunctive in the query: all of them must be present.
-			if (!selected.every(value => values.includes(value))) {
-				return false;
-			}
-		} else if (!selected.some(value => values.includes(value))) {
+		const all = needsAll(criterion, criteria);
+		const present = (value: string): boolean => values.includes(value);
+		const holds = all ? selected.every(present) : selected.some(present);
+		// An exclusion drops the product when what it names holds; anything else keeps it.
+		if (holds === isExclusion(criterion)) {
 			return false;
 		}
 	}

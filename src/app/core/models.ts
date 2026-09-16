@@ -3,6 +3,9 @@
 export const PPP = 'https://agriculture.ld.admin.ch/plant-protection/';
 export const GRAPH = 'https://lindas.admin.ch/fsvo/plant-protection-products';
 
+/** How the values of one multiple choice combine: all of them must hold, or any one will do. */
+export type Combination = 'and' | 'or';
+
 /** The three admission kinds a product can have. */
 export type ProductKind = 'RegularProduct' | 'SalePermission' | 'ParallelImport';
 

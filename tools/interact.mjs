@@ -108,29 +108,35 @@ await step('07-detail-expanded', async () => {
 
 await step('08-query-criteria', async () => {
 	await visit(`/query`);
-	await wait(3500);
-	const inputs = await page.$$('app-term-select input');
-	await inputs[0].click();
-	await inputs[0].type('Weizen');
-	await wait(900);
-	await page.keyboard.press('ArrowDown');
-	await page.keyboard.press('Enter');
-	await wait(1200);
-	// The advanced query page keeps its selection as chips under the field.
-	const chips = await page.evaluate(() =>
-		[...document.querySelectorAll('app-term-select mat-chip')].map(chip => chip.textContent.trim())
-	);
-	console.log(`        chips: ${JSON.stringify(chips)}`);
+	// The form only renders once the registry has loaded, which can take a while.
+	await page.waitForSelector('app-term-dropdown mat-select', {timeout: 60000});
+	await wait(1000);
+	const fields = await page.$$('app-term-dropdown');
+	const choose = async (field, text) => {
+		await (await field.$('mat-select')).click();
+		await wait(700);
+		await page.type('.term-search input', text);
+		await wait(600);
+		await page.evaluate(() => document.querySelector('mat-option:not(.mdc-list-item--disabled)').click());
+		await wait(500);
+		await page.keyboard.press('Escape');
+		await wait(600);
+	};
+	// Two crops, which must both be met: the AND/OR switch becomes available with the second.
+	await choose(fields[0], 'Winterweizen');
+	await choose(fields[0], 'Wintergerste');
+	const combination = await page.evaluate(() => {
+		const group = document.querySelector('app-term-dropdown mat-button-toggle-group');
+		const checked = group.querySelector('.mat-button-toggle-checked')?.textContent.trim();
+		return `${checked}, ${group.classList.contains('mat-button-toggle-group-disabled') ? 'disabled' : 'enabled'}`;
+	});
+	console.log(`        crops combine with: ${combination}`);
 	// The dropdowns offer only what is still reachable under the criteria already set.
-	await page.click('app-term-dropdown mat-select');
-	await wait(700);
-	const offered = await page.evaluate(() =>
-		[...document.querySelectorAll('mat-option')].map(option => option.textContent.trim().replace(/\s+/gu, ' '))
-	);
-	console.log(`        product types still reachable: ${JSON.stringify(offered)}`);
-	await page.keyboard.press('Enter');
-	await page.keyboard.press('Escape');
-	await wait(600);
+	const offered = await page.evaluate(() => {
+		const sections = [...document.querySelectorAll('.query-section')];
+		return sections.map(section => section.querySelector('legend').textContent.trim());
+	});
+	console.log(`        sections: ${JSON.stringify(offered)}`);
 });
 
 await step('09-query-run', async () => {
