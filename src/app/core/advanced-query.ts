@@ -15,7 +15,7 @@ export interface AdvancedCriteria {
 	/** Also match indications for crops below the selected one in the crop hierarchy. */
 	includeSubCrops: boolean;
 	pests: string[];
-	/** Empty means any effect, including indications that only state `ppp:pest`. */
+	/** Empty means any effect, including indications that only state `:pest`. */
 	effects: Effect[];
 	/** Require crop and pest to meet in one and the same indication. */
 	sameIndication: boolean;
@@ -99,11 +99,19 @@ export type Aliases = (id: string) => string[];
 
 const ITSELF: Aliases = id => [id];
 
+/**
+ * Names a thing of the registry, as briefly as SPARQL allows.
+ *
+ * Classes and properties have plain local names, which read far better as prefixed names
+ * — `:Acaricide` rather than the whole IRI. Code list terms are named `crop/1a2b-…`, and a
+ * slash is not allowed in a prefixed name without escaping it, so those keep the full IRI.
+ */
 function iri(id: string): string {
-	return `<${NAMESPACE}${id.replace(/[^A-Za-z0-9._~/-]/gu, '')}>`;
+	const safe = id.replace(/[^A-Za-z0-9._~/-]/gu, '');
+	return /^[A-Za-z][A-Za-z0-9_-]*$/u.test(safe) ? `:${safe}` : `<${NAMESPACE}${safe}>`;
 }
 
-/** Renders identifiers such as `crop/1a2b` as a SPARQL `VALUES` list of IRIs. */
+/** Renders identifiers such as `crop/1a2b` or `Acaricide` as a SPARQL `VALUES` list. */
 function values(variable: string, ids: string[], aliases: Aliases): string {
 	const iris = ids.flatMap(id => aliases(id)).map(iri).join(' ');
 	return `VALUES ?${variable} { ${iris} }`;
@@ -144,11 +152,11 @@ export function buildAdvancedQuery(criteria: AdvancedCriteria, aliases: Aliases 
 		criteria.maxWaitingPeriodDays !== undefined;
 
 	// The carrier of the indications: the product itself, or the product it references.
-	const carrier = criteria.includeInherited ? '?carrier' : '?product';
+	const carrier = criteria.includeInherited ? '?carrier' : '?permission';
 	if (indicationNeeded && criteria.includeInherited) {
 		lines.push(
 			'  # Sale permissions and parallel imports inherit the uses of their reference product.',
-			'  ?product ppp:referenceProduct? ?carrier .'
+			'  ?permission :referenceProduct? ?carrier .'
 		);
 	}
 
@@ -157,49 +165,49 @@ export function buildAdvancedQuery(criteria: AdvancedCriteria, aliases: Aliases 
 		const pestIndication = criteria.sameIndication ? '?indication' : '?pestIndication';
 
 		if (criteria.crops.length) {
-			const path = criteria.includeSubCrops ? 'ppp:crop/schema:isPartOf*' : 'ppp:crop';
+			const path = criteria.includeSubCrops ? ':crop/schema:isPartOf*' : ':crop';
 			lines.push(
 				criteria.includeSubCrops
 					? '  # `schema:isPartOf*` walks up the crop hierarchy, so "Getreide" also matches "Winterweizen".'
 					: '  # Only indications stated for exactly this crop.',
-				`  ${cropIndication} ppp:product ${carrier} ; ${path} ?crop .`,
+				`  ${cropIndication} :product ${carrier} ; ${path} ?crop .`,
 				`  ${values('crop', criteria.crops, aliases)}`
 			);
 		}
 
 		if (criteria.pests.length) {
 			const effectPaths = criteria.effects.length
-				? criteria.effects.map(effect => `ppp:${effect}Effect`).join('|')
-				: 'ppp:pest';
+				? criteria.effects.map(effect => `:${effect}Effect`).join('|')
+				: ':pest';
 			lines.push(
 				criteria.effects.length
-					? `  # Restricted to ${criteria.effects.join(', ')} effect; the effect properties refine ppp:pest.`
+					? `  # Restricted to ${criteria.effects.join(', ')} effect; the effect properties refine :pest.`
 					: '  # Any recorded effect on the pest.',
-				`  ${pestIndication} ppp:product ${carrier} ; ${effectPaths} ?pest .`,
+				`  ${pestIndication} :product ${carrier} ; ${effectPaths} ?pest .`,
 				`  ${values('pest', criteria.pests, aliases)}`
 			);
 		}
 
 		if (!criteria.crops.length && !criteria.pests.length) {
-			lines.push(`  ?indication ppp:product ${carrier} .`);
+			lines.push(`  ?indication :product ${carrier} .`);
 		}
 
 		if (criteria.applicationAreas.length) {
 			lines.push(
-				'  ?indication ppp:applicationArea ?applicationArea .',
+				'  ?indication :applicationArea ?applicationArea .',
 				`  ${values('applicationArea', criteria.applicationAreas, aliases)}`
 			);
 		}
 
 		for (const [index, obligation] of criteria.obligations.entries()) {
-			lines.push(...requires('?indication', 'ppp:obligation', `obligation${index}`, obligation, aliases));
+			lines.push(...requires('?indication', ':obligation', `obligation${index}`, obligation, aliases));
 		}
 
 		if (criteria.maxWaitingPeriodDays !== undefined) {
 			lines.push(
 				'  # Waiting periods are recorded in days or in weeks; both are compared in days.',
 				'  OPTIONAL {',
-				'    ?indication ppp:waitingPeriod ?waitingPeriod .',
+				'    ?indication :waitingPeriod ?waitingPeriod .',
 				'    OPTIONAL { ?waitingPeriod schema:value ?waitingValue }',
 				'    OPTIONAL { ?waitingPeriod schema:maxValue ?waitingMax }',
 				'    OPTIONAL { ?waitingPeriod schema:unitCode ?waitingUnit }',
@@ -211,63 +219,69 @@ export function buildAdvancedQuery(criteria: AdvancedCriteria, aliases: Aliases 
 		}
 
 		for (const [index, obligation] of criteria.excludedObligations.entries()) {
-			lines.push(excludes('?indication', 'ppp:obligation', `withoutObligation${index}`, obligation, aliases));
+			lines.push(excludes('?indication', ':obligation', `withoutObligation${index}`, obligation, aliases));
 		}
 	}
 
 	if (criteria.productTypes.length) {
-		lines.push('  ?product ppp:productType ?productType .', `  ${values('productType', criteria.productTypes, ITSELF)}`);
+		lines.push(
+			'  ?permission :productType ?productType .',
+			`  ${values('productType', criteria.productTypes, ITSELF)}`
+		);
 	}
 	if (criteria.formulations.length) {
-		lines.push('  ?product ppp:formulation ?formulation .', `  ${values('formulation', criteria.formulations, aliases)}`);
+		lines.push('  ?permission :formulation ?formulation .', `  ${values('formulation', criteria.formulations, aliases)}`);
 	}
 	if (criteria.countries.length) {
 		const countries = criteria.countries.map(id => `country:${id.replace(/[^A-Z]/gu, '')}`).join(' ');
-		lines.push('  ?product schema:countryOfOrigin ?country .', `  VALUES ?country { ${countries} }`);
+		lines.push('  ?permission schema:countryOfOrigin ?country .', `  VALUES ?country { ${countries} }`);
 	}
 	if (criteria.holders.length) {
 		lines.push(
-			'  ?product ppp:permissionHolder ?holder .',
+			'  ?permission :permissionHolder ?holder .',
 			`  VALUES ?holder { ${criteria.holders.map(id => iri(`company/${id}`)).join(' ')} }`
 		);
 	}
 	if (criteria.kinds.length) {
 		lines.push(
-			`  VALUES ?kind { ${criteria.kinds.map(kind => `ppp:${kind.replace(/[^A-Za-z]/gu, '')}`).join(' ')} }`,
-			'  ?product a ?kind .'
+			`  VALUES ?kind { ${criteria.kinds.map(kind => iri(kind.replace(/[^A-Za-z]/gu, ''))).join(' ')} }`,
+			'  ?permission a ?kind .'
 		);
 	}
 
 	// Substances and labelling elements are conjunctive: every selected one must be present.
 	for (const [index, substance] of criteria.substances.entries()) {
-		lines.push(...requires('?product', 'ppp:ingredient/ppp:substance', `substance${index}`, substance, aliases));
+		lines.push(...requires('?permission', ':ingredient/:substance', `substance${index}`, substance, aliases));
 	}
 	for (const [index, substance] of criteria.excludedSubstances.entries()) {
-		lines.push(excludes('?product', 'ppp:ingredient/ppp:substance', `withoutSubstance${index}`, substance, aliases));
+		lines.push(excludes('?permission', ':ingredient/:substance', `withoutSubstance${index}`, substance, aliases));
 	}
 	for (const [index, element] of criteria.labelElements.entries()) {
-		lines.push(...requires('?product', 'ppp:ghsLabel', `labelElement${index}`, element, aliases));
+		lines.push(...requires('?permission', ':ghsLabel', `labelElement${index}`, element, aliases));
 	}
 	for (const [index, element] of criteria.excludedLabelElements.entries()) {
-		lines.push(excludes('?product', 'ppp:ghsLabel', `withoutLabelElement${index}`, element, aliases));
+		lines.push(excludes('?permission', ':ghsLabel', `withoutLabelElement${index}`, element, aliases));
 	}
 	if (criteria.onlyWithoutDeadline) {
 		lines.push(
 			'  # Products with an exhaustion deadline have lost their admission and may only be used up.',
-			'  FILTER NOT EXISTS { ?product ppp:exhaustionDeadline ?deadline }'
+			'  FILTER NOT EXISTS { ?permission :exhaustionDeadline ?deadline }'
 		);
 	}
 
-	return `PREFIX ppp: <${NAMESPACE}>
+	return `PREFIX : <${NAMESPACE}>
 PREFIX schema: <http://schema.org/>
 PREFIX country: <https://ld.admin.ch/country/>
 
-SELECT DISTINCT (STRAFTER(STR(?product), "/product/") AS ?id)
+SELECT DISTINCT ?permission ?name ?id ?permissionHolder
 FROM <${GRAPH}>
 WHERE {
-  ?product a ppp:Product .
+  ?permission a :Product ;
+    schema:name ?name ;
+    :federalAdmissionNumber ?id .
+  # Optional, because a handful of products name no permission holder at all.
+  OPTIONAL { ?permission :permissionHolder / schema:name ?permissionHolder }
 ${lines.join('\n')}
 }
-ORDER BY ?id
-LIMIT ${Math.max(1, Math.min(5000, Math.round(criteria.limit)))}`;
+ORDER BY ?name`;
 }
