@@ -110,6 +110,7 @@ SELECT
   (SAMPLE(?candidate) AS ?label)
   (SAMPLE(?stable) AS ?stableLabel)
   (GROUP_CONCAT(DISTINCT ${local('parent')}; separator=",") AS ?parents)
+  (SAMPLE(?activeFlag) AS ?active)
 ${FROM}
 WHERE {
   VALUES ?class {
@@ -119,6 +120,8 @@ WHERE {
   ?term a ?class .
   OPTIONAL { ?term schema:identifier ?code }
   OPTIONAL { ?term schema:isPartOf ?parent }
+  # Substances are also typed by role; only an active substance is what a reader calls one.
+  OPTIONAL { ?term a ppp:ActiveSubstance BIND("true" AS ?activeFlag) }
   OPTIONAL { ?term schema:name ?requested FILTER(LANG(?requested) = "${language}") }
   OPTIONAL { ?term schema:name ?german FILTER(LANG(?german) = "de") }
   OPTIONAL { ?term schema:name ?french FILTER(LANG(?french) = "fr") }

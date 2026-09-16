@@ -90,6 +90,32 @@
 	flex: 1 1 12rem;
 }
 
+/**
+ * Cards or table, as two buttons of which one is always the one in use.
+ *
+ * The one in use carries the dark grey of an active control, as the AND/OR switches of the
+ * advanced query do. The pair is as tall as the outlines of the fields beside it, and it
+ * lines up with them rather than with their floating labels, which sit above the outline.
+ */
+.search-view {
+	flex: none;
+	align-self: flex-end;
+	/* The fields' outlines reach 1px below the fields themselves. */
+	margin-bottom: -1px;
+	/* 40px like the outlines, of which the group's own 1px border takes two. */
+	--mat-button-toggle-height: 2.375rem;
+	--mat-button-toggle-shape: var(--app-radius);
+	--mat-button-toggle-selected-state-background-color: var(--app-control-active);
+	--mat-button-toggle-selected-state-text-color: #fff;
+
+	/* Inline, so that the toggle's line height and not the icon sets the button's height. */
+	.mat-icon {
+		width: 1.375rem;
+		height: 1.375rem;
+		vertical-align: middle;
+	}
+}
+
 .search-panel-toggle {
 	align-self: center;
 

@@ -108,6 +108,7 @@
     "activeSubstances": "Substances actives",
     "admissionNumber": "Numéro d'homologation",
     "applicationArea": "Domaine d'application",
+    "category": "Catégorie",
     "comments": "Commentaires d'application",
     "country": "Pays de fabrication",
     "crop": "Culture",
@@ -128,6 +129,7 @@
     "inheritedIndications": "Les indications proviennent du produit de référence {{name}}.",
     "labelling": "Étiquetage",
     "linkedData": "Ouvrir en tant que Linked Data",
+    "name": "Produit",
     "noIndications": "Aucune indication n'est enregistrée pour ce produit.",
     "notFound": "Ce produit n'a pas été trouvé.",
     "obligations": "Charges",
@@ -218,7 +220,12 @@
       "number": "Numéro d'homologation",
       "relevance": "Meilleure correspondance"
     },
-    "sortLabel": "Tri"
+    "sortLabel": "Tri",
+    "view": {
+      "cards": "Vignettes",
+      "table": "Tableau"
+    },
+    "viewLabel": "Affichage"
   },
   "status": {
     "authorised": "Homologué",

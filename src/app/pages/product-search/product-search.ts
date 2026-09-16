@@ -1,12 +1,14 @@
 import {ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import {MatChipsModule} from '@angular/material/chips';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
 import {MatInputModule} from '@angular/material/input';
 import {MatPaginatorIntl, MatPaginatorModule, PageEvent} from '@angular/material/paginator';
 import {MatSelectModule} from '@angular/material/select';
+import {MatTooltipModule} from '@angular/material/tooltip';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {ObAlertModule, ObPaginatorService} from '@oblique/oblique';
@@ -14,11 +16,13 @@ import {fullTermLabel, shortTermLabel} from '../../core/format';
 import {Product, Term} from '../../core/models';
 import {RegistryService} from '../../core/registry.service';
 import {ProductCardComponent} from '../../shared/product-card';
+import {ProductTableComponent} from '../../shared/product-table';
 import {
 	EMPTY_FILTERS,
 	Filters,
 	LIST_FACETS,
 	ListFacet,
+	ResultView,
 	SINGLE_FACETS,
 	SortKey,
 	candidateValues,
@@ -48,15 +52,18 @@ const DEFAULT_PAGE_SIZE = 12;
 	imports: [
 		FormsModule,
 		MatButtonModule,
+		MatButtonToggleModule,
 		MatChipsModule,
 		MatFormFieldModule,
 		MatIconModule,
 		MatInputModule,
 		MatPaginatorModule,
 		MatSelectModule,
+		MatTooltipModule,
 		ObAlertModule,
 		RouterLink,
 		ProductCardComponent,
+		ProductTableComponent,
 		TermDropdownComponent,
 		TranslatePipe
 	],
@@ -77,6 +84,7 @@ export class ProductSearchPage {
 	readonly sort = signal<SortKey>('relevance');
 	readonly page = signal(0);
 	readonly pageSize = signal(DEFAULT_PAGE_SIZE);
+	readonly view = signal<ResultView>('cards');
 	/** The panel sits beside the results on wide screens and folds away on narrow ones. */
 	readonly panelOpen = signal(typeof window === 'undefined' || window.matchMedia('(min-width: 1100px)').matches);
 
@@ -157,10 +165,11 @@ export class ProductSearchPage {
 		this.filters.set(state.filters);
 		this.sort.set(state.sort);
 		this.page.set(state.page);
+		this.view.set(state.view);
 
 		// The URL mirrors the state so that a result list can be bookmarked and shared.
 		effect(() => {
-			const params = toParams(this.filters(), this.sort(), this.page());
+			const params = toParams(this.filters(), this.sort(), this.page(), this.view());
 			untracked(() =>
 				void this.router.navigate([], {relativeTo: this.route, queryParams: params, replaceUrl: true})
 			);

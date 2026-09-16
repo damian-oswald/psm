@@ -165,6 +165,9 @@ function intersect(keys: string[], valuesOfKey: (key: string) => string[]): stri
 
 export type SortKey = 'relevance' | 'name' | 'number' | 'holder';
 
+/** How a result list is shown: as a grid of cards, or as a table to compare across. */
+export type ResultView = 'cards' | 'table';
+
 export function compareProducts(left: Product, right: Product, sort: SortKey, text: string): number {
 	switch (sort) {
 		case 'name':
@@ -198,7 +201,7 @@ function relevance(product: Product, text: string): number {
 }
 
 /** Serialises the filters into query parameters so that a result can be shared as a link. */
-export function toParams(filters: Filters, sort: SortKey, page: number): Params {
+export function toParams(filters: Filters, sort: SortKey, page: number, view: ResultView = 'cards'): Params {
 	const params: Params = {};
 	if (filters.text) {
 		params['q'] = filters.text;
@@ -214,10 +217,13 @@ export function toParams(filters: Filters, sort: SortKey, page: number): Params 
 	if (page > 0) {
 		params['page'] = String(page + 1);
 	}
+	if (view !== 'cards') {
+		params['view'] = view;
+	}
 	return params;
 }
 
-export function fromParams(params: Params): {filters: Filters; sort: SortKey; page: number} {
+export function fromParams(params: Params): {filters: Filters; sort: SortKey; page: number; view: ResultView} {
 	const read = (key: string): string[] => (typeof params[key] === 'string' && params[key] ? params[key].split('~') : []);
 	const filters: Filters = {...EMPTY_FILTERS, text: typeof params['q'] === 'string' ? params['q'] : ''};
 	for (const facet of LIST_FACETS) {
@@ -225,5 +231,6 @@ export function fromParams(params: Params): {filters: Filters; sort: SortKey; pa
 	}
 	const sort = (['name', 'number', 'holder', 'relevance'] as SortKey[]).find(key => key === params['sort']) ?? 'relevance';
 	const page = Math.max(0, Number(params['page'] ?? 1) - 1) || 0;
-	return {filters, sort, page};
+	const view: ResultView = params['view'] === 'table' ? 'table' : 'cards';
+	return {filters, sort, page, view};
 }

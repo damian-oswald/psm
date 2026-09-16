@@ -93,6 +93,18 @@ await step('05-crop-selected', async () => {
 	console.log(`        active filters: ${JSON.stringify(badges)}`);
 });
 
+await step('05b-table-view', async () => {
+	await page.click('.search-view mat-button-toggle[value="table"] button');
+	await wait(800);
+	const table = await page.evaluate(() => ({
+		rows: document.querySelectorAll('app-product-table tbody tr').length,
+		chips: document.querySelectorAll('app-product-table mat-chip').length,
+		paginator: !!document.querySelector('mat-paginator'),
+		active: document.querySelector('.search-view .mat-button-toggle-checked')?.getAttribute('value')
+	}));
+	console.log(`        table: ${JSON.stringify(table)}`);
+});
+
 await step('06-detail', async () => {
 	await visit(`/products/W-6880`);
 	await wait(3500);

@@ -73,6 +73,14 @@ export class RegistryService {
 	readonly obligations = signal(new Map<string, Term>());
 	readonly applicationComments = signal(new Map<string, Term>());
 	readonly substances = signal(new Map<string, Term>());
+	/**
+	 * The substances the graph classes as active substances.
+	 *
+	 * A product's ingredients also include co-formulants and, in 549 products, substances
+	 * with no role at all; the product page lists those apart, and so does every other view
+	 * that speaks of active substances.
+	 */
+	readonly activeSubstances = signal(new Set<string>());
 	readonly applicationAreas = signal(new Map<string, Term>());
 	readonly formulations = signal(new Map<string, Term>());
 	readonly labelElements = signal(new Map<string, LabelElement>());
@@ -203,9 +211,13 @@ export class RegistryService {
 		const areas = new Map<string, Term>();
 		const formulations = new Map<string, Term>();
 		const labelElements = new Map<string, LabelElement>();
+		const activeSubstances = new Set<string>();
 
 		for (const row of rows) {
 			const id = row['id'];
+			if (row['type'] === 'Substance' && row['active']) {
+				activeSubstances.add(canonicalIds.get(id) ?? id);
+			}
 			if (canonicalIds.get(id) !== id) {
 				continue;
 			}
@@ -256,6 +268,7 @@ export class RegistryService {
 		this.obligations.set(obligations);
 		this.applicationComments.set(comments);
 		this.substances.set(substances);
+		this.activeSubstances.set(activeSubstances);
 		this.applicationAreas.set(areas);
 		this.formulations.set(formulations);
 		this.labelElements.set(labelElements);
