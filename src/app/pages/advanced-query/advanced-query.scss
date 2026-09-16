@@ -54,41 +54,50 @@
 	line-height: 1.3;
 }
 
-.query-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-	gap: ob.$ob-spacing-md;
-	align-items: start;
-	margin-bottom: ob.$ob-spacing-default;
-}
-
-.query-grid-exclusions {
-	padding: ob.$ob-spacing-md;
-	border-left: 3px solid ob.$ob-accent;
-	background: var(--app-surface-muted);
-}
-
-.query-grid-title {
-	grid-column: 1 / -1;
+/**
+ * One topic of the question: what the product is used for, the conditions attached to that
+ * use, what the product is and contains, how it is labelled, and who may sell it.
+ *
+ * Grouping by topic rather than by kind of field keeps what belongs together in reach —
+ * a required and an excluded substance sit side by side instead of in separate blocks.
+ */
+.query-section {
 	margin: 0;
+	padding: ob.$ob-spacing-md 0 ob.$ob-spacing-default;
+	border: 0;
+	border-bottom: var(--app-border);
+
+	&:last-of-type {
+		border-bottom: 0;
+		padding-bottom: 0;
+	}
+}
+
+.query-section-title {
+	float: left;
+	width: 100%;
+	margin-bottom: ob.$ob-spacing-md;
+	padding: 0;
+	border: 0;
+	font-size: 1rem;
+	font-weight: 700;
+}
+
+/** Wide enough cells that a field still has room beside its AND/OR switch. */
+.query-grid {
+	clear: both;
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(22rem, 100%), 1fr));
+	gap: ob.$ob-spacing-md ob.$ob-spacing-lg;
+	align-items: start;
 }
 
 .query-options {
 	display: flex;
 	flex-wrap: wrap;
 	gap: ob.$ob-spacing-xs ob.$ob-spacing-lg;
-	margin: 0;
-	padding: ob.$ob-spacing-md 0 0;
-	border: 0;
-	border-top: var(--app-border);
+	margin-top: ob.$ob-spacing-sm;
 	font-size: 0.875rem;
-
-	legend {
-		padding: 0;
-		float: left;
-		width: 100%;
-		margin-bottom: ob.$ob-spacing-xs;
-	}
 }
 
 .query-output {

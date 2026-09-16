@@ -14,145 +14,193 @@
 				<h2>{{ 'query.criteria' | translate }}</h2>
 				<div class="query-actions">
 					<button mat-button type="button" (click)="reset()">{{ 'common.reset' | translate }}</button>
-					<button mat-flat-button type="submit" [disabled]="!runnable() || running()">
+					<button mat-flat-button type="submit" [disabled]="running()">
 						<mat-icon svgIcon="search" />
 						{{ 'query.run' | translate }}
 					</button>
 				</div>
 			</div>
 
-			<div class="query-grid">
-				<app-term-select
-					[labelKey]="'filter.crop'"
-					[options]="cropOptions()"
-					[selected]="criteria().crops"
-					(selectedChange)="update('crops', $event)"
-				/>
-				<app-term-select
-					[labelKey]="'filter.pest'"
-					[options]="pestOptions()"
-					[selected]="criteria().pests"
-					(selectedChange)="update('pests', $event)"
-				/>
-				<app-term-select
-					[labelKey]="'filter.applicationArea'"
-					[options]="areaOptions()"
-					[selected]="criteria().applicationAreas"
-					(selectedChange)="update('applicationAreas', $event)"
-				/>
-				<app-term-dropdown
-					[labelKey]="'filter.productType'"
-					[options]="typeOptions()"
-					[selected]="criteria().productTypes"
-					(selectedChange)="update('productTypes', $event)"
-				/>
-
-				<app-term-select
-					[labelKey]="'query.requiredSubstance'"
-					[options]="substanceOptions()"
-					[selected]="criteria().substances"
-					(selectedChange)="update('substances', $event)"
-				/>
-				<app-term-select
-					[labelKey]="'query.requiredLabelElement'"
-					[options]="labelOptions()"
-					[selected]="criteria().labelElements"
-					(selectedChange)="update('labelElements', $event)"
-				/>
-				<app-term-select
-					[labelKey]="'query.requiredObligation'"
-					[options]="obligationOptions()"
-					[selected]="criteria().obligations"
-					(selectedChange)="update('obligations', $event)"
-				/>
-				<app-term-select
-					[labelKey]="'filter.formulation'"
-					[options]="formulationOptions()"
-					[selected]="criteria().formulations"
-					(selectedChange)="update('formulations', $event)"
-				/>
-
-				<app-term-select
-					[labelKey]="'filter.holder'"
-					[options]="holderOptions()"
-					[selected]="criteria().holders"
-					(selectedChange)="update('holders', $event)"
-				/>
-				<app-term-dropdown
-					[labelKey]="'filter.kind'"
-					[options]="kindOptions()"
-					[selected]="criteria().kinds"
-					(selectedChange)="updateKinds($event)"
-				/>
-				<app-term-dropdown
-					[labelKey]="'filter.country'"
-					[options]="countryOptions()"
-					[selected]="criteria().countries"
-					(selectedChange)="update('countries', $event)"
-				/>
-				<mat-form-field subscriptSizing="dynamic">
-					<mat-label>{{ 'query.maxWaitingPeriod' | translate }}</mat-label>
-					<input
-						matInput
-						type="number"
-						min="0"
-						step="1"
-						name="maxWaitingPeriod"
-						[ngModel]="criteria().maxWaitingPeriodDays"
-						(ngModelChange)="updateWaitingPeriod($event)"
+			<fieldset class="query-section">
+				<legend class="query-section-title">{{ 'query.use' | translate }}</legend>
+				<div class="query-grid">
+					<app-term-dropdown
+						[labelKey]="'filter.crop'"
+						[options]="cropOptions()"
+						[selected]="criteria().crops"
+						(selectedChange)="update('crops', $event)"
+						[combination]="criteria().combinations.crops"
+						(combinationChange)="updateCombination('crops', $event)"
 					/>
-					<span matTextSuffix>{{ 'unit.day' | translate }}</span>
-				</mat-form-field>
-			</div>
-
-			<div class="query-grid query-grid-exclusions">
-				<span class="query-grid-title app-field-label">{{ 'query.exclusions' | translate }}</span>
-				<app-term-select
-					[labelKey]="'query.excludedLabelElement'"
-					[options]="excludedLabelOptions()"
-					[selected]="criteria().excludedLabelElements"
-					(selectedChange)="update('excludedLabelElements', $event)"
-				/>
-				<app-term-select
-					[labelKey]="'query.excludedSubstance'"
-					[options]="excludedSubstanceOptions()"
-					[selected]="criteria().excludedSubstances"
-					(selectedChange)="update('excludedSubstances', $event)"
-				/>
-				<app-term-select
-					[labelKey]="'query.excludedObligation'"
-					[options]="excludedObligationOptions()"
-					[selected]="criteria().excludedObligations"
-					(selectedChange)="update('excludedObligations', $event)"
-				/>
-			</div>
-
-			<fieldset class="query-options">
-				<legend class="app-field-label">{{ 'query.options' | translate }}</legend>
-				<mat-checkbox [checked]="criteria().includeSubCrops" (change)="update('includeSubCrops', $event.checked)">
-					{{ 'filter.includeSubCrops' | translate }}
-				</mat-checkbox>
-				<mat-checkbox
-					[checked]="criteria().sameIndication"
-					(change)="update('sameIndication', $event.checked)"
-					[matTooltip]="'query.sameIndicationHint' | translate"
-				>
-					{{ 'query.sameIndication' | translate }}
-				</mat-checkbox>
-				<mat-checkbox [checked]="criteria().includeInherited" (change)="update('includeInherited', $event.checked)">
-					{{ 'query.includeInherited' | translate }}
-				</mat-checkbox>
-				<mat-checkbox
-					[checked]="criteria().onlyWithoutDeadline"
-					(change)="update('onlyWithoutDeadline', $event.checked)"
-				>
-					{{ 'query.onlyWithoutDeadline' | translate }}
-				</mat-checkbox>
-				@for (effect of effects; track effect) {
-					<mat-checkbox [checked]="criteria().effects.includes(effect)" (change)="toggleEffect(effect, $event.checked)">
-						{{ 'query.effectOnly' | translate: {effect: 'product.effect.' + effect | translate} }}
+					<app-term-dropdown
+						[labelKey]="'filter.pest'"
+						[options]="pestOptions()"
+						[selected]="criteria().pests"
+						(selectedChange)="update('pests', $event)"
+						[combination]="criteria().combinations.pests"
+						(combinationChange)="updateCombination('pests', $event)"
+					/>
+					<app-term-dropdown
+						[multiple]="false"
+						[labelKey]="'query.effects'"
+						[options]="effectOptions()"
+						[selected]="criteria().effects"
+						(selectedChange)="updateEffects($event)"
+					/>
+					<app-term-dropdown
+						[labelKey]="'filter.applicationArea'"
+						[options]="areaOptions()"
+						[selected]="criteria().applicationAreas"
+						(selectedChange)="update('applicationAreas', $event)"
+						[combination]="criteria().combinations.applicationAreas"
+						(combinationChange)="updateCombination('applicationAreas', $event)"
+					/>
+					<app-term-dropdown
+						[multiple]="false"
+						[labelKey]="'query.maxWaitingPeriod'"
+						[options]="waitingPeriodOptions()"
+						[selected]="waitingPeriodSelection()"
+						(selectedChange)="updateWaitingPeriod($event)"
+					/>
+				</div>
+				<div class="query-options">
+					<mat-checkbox
+						[checked]="criteria().includeSubCrops"
+						(change)="update('includeSubCrops', $event.checked)"
+					>
+						{{ 'filter.includeSubCrops' | translate }}
 					</mat-checkbox>
-				}
+					<mat-checkbox
+						[checked]="criteria().sameIndication"
+						(change)="update('sameIndication', $event.checked)"
+						[matTooltip]="'query.sameIndicationHint' | translate"
+					>
+						{{ 'query.sameIndication' | translate }}
+					</mat-checkbox>
+				</div>
+			</fieldset>
+
+			<fieldset class="query-section">
+				<legend class="query-section-title">{{ 'query.obligations' | translate }}</legend>
+				<div class="query-grid">
+					<app-term-dropdown
+						[labelKey]="'query.requiredObligation'"
+						[options]="obligationOptions()"
+						[selected]="criteria().obligations"
+						(selectedChange)="update('obligations', $event)"
+						[combination]="criteria().combinations.obligations"
+						(combinationChange)="updateCombination('obligations', $event)"
+					/>
+					<app-term-dropdown
+						[labelKey]="'query.excludedObligation'"
+						[options]="excludedObligationOptions()"
+						[selected]="criteria().excludedObligations"
+						(selectedChange)="update('excludedObligations', $event)"
+						[combination]="criteria().combinations.excludedObligations"
+						(combinationChange)="updateCombination('excludedObligations', $event)"
+					/>
+				</div>
+			</fieldset>
+
+			<fieldset class="query-section">
+				<legend class="query-section-title">{{ 'query.composition' | translate }}</legend>
+				<div class="query-grid">
+					<app-term-dropdown
+						[labelKey]="'filter.productType'"
+						[options]="typeOptions()"
+						[selected]="criteria().productTypes"
+						(selectedChange)="update('productTypes', $event)"
+						[combination]="criteria().combinations.productTypes"
+						(combinationChange)="updateCombination('productTypes', $event)"
+					/>
+					<app-term-dropdown
+						[labelKey]="'query.requiredSubstance'"
+						[options]="substanceOptions()"
+						[selected]="criteria().substances"
+						(selectedChange)="update('substances', $event)"
+						[combination]="criteria().combinations.substances"
+						(combinationChange)="updateCombination('substances', $event)"
+					/>
+					<app-term-dropdown
+						[labelKey]="'query.excludedSubstance'"
+						[options]="excludedSubstanceOptions()"
+						[selected]="criteria().excludedSubstances"
+						(selectedChange)="update('excludedSubstances', $event)"
+						[combination]="criteria().combinations.excludedSubstances"
+						(combinationChange)="updateCombination('excludedSubstances', $event)"
+					/>
+					<app-term-dropdown
+						[labelKey]="'filter.formulation'"
+						[options]="formulationOptions()"
+						[selected]="criteria().formulations"
+						(selectedChange)="update('formulations', $event)"
+						[combination]="criteria().combinations.formulations"
+						(combinationChange)="updateCombination('formulations', $event)"
+					/>
+				</div>
+			</fieldset>
+
+			<fieldset class="query-section">
+				<legend class="query-section-title">{{ 'query.labelling' | translate }}</legend>
+				<div class="query-grid">
+					<app-term-dropdown
+						[labelKey]="'query.requiredLabelElement'"
+						[options]="labelOptions()"
+						[selected]="criteria().labelElements"
+						(selectedChange)="update('labelElements', $event)"
+						[combination]="criteria().combinations.labelElements"
+						(combinationChange)="updateCombination('labelElements', $event)"
+					/>
+					<app-term-dropdown
+						[labelKey]="'query.excludedLabelElement'"
+						[options]="excludedLabelOptions()"
+						[selected]="criteria().excludedLabelElements"
+						(selectedChange)="update('excludedLabelElements', $event)"
+						[combination]="criteria().combinations.excludedLabelElements"
+						(combinationChange)="updateCombination('excludedLabelElements', $event)"
+					/>
+				</div>
+			</fieldset>
+
+			<fieldset class="query-section">
+				<legend class="query-section-title">{{ 'query.market' | translate }}</legend>
+				<div class="query-grid">
+					<app-term-dropdown
+						[multiple]="false"
+						[labelKey]="'filter.holder'"
+						[options]="holderOptions()"
+						[selected]="criteria().holders"
+						(selectedChange)="update('holders', $event)"
+					/>
+					<app-term-dropdown
+						[multiple]="false"
+						[labelKey]="'filter.kind'"
+						[options]="kindOptions()"
+						[selected]="criteria().kinds"
+						(selectedChange)="updateKinds($event)"
+					/>
+					<app-term-dropdown
+						[multiple]="false"
+						[labelKey]="'filter.country'"
+						[options]="countryOptions()"
+						[selected]="criteria().countries"
+						(selectedChange)="update('countries', $event)"
+					/>
+				</div>
+				<div class="query-options">
+					<mat-checkbox
+						[checked]="criteria().includeInherited"
+						(change)="update('includeInherited', $event.checked)"
+					>
+						{{ 'query.includeInherited' | translate }}
+					</mat-checkbox>
+					<mat-checkbox
+						[checked]="criteria().onlyWithoutDeadline"
+						(change)="update('onlyWithoutDeadline', $event.checked)"
+					>
+						{{ 'query.onlyWithoutDeadline' | translate }}
+					</mat-checkbox>
+				</div>
 			</fieldset>
 		</form>
 

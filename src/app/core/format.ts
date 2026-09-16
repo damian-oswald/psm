@@ -93,11 +93,13 @@ export function truncate(text: string, length: number): string {
  * of the obligations say nothing, so those fall back to a shortened label.
  */
 export function shortTermLabel(term: Term, length = 28): string {
+	return speakingCode(term) ?? truncate(term.label, length);
+}
+
+/** A term's code when it says something (`H410`, `SP 1`, `EC`) rather than being a bare number. */
+export function speakingCode(term: Term): string | undefined {
 	const code = term.code ?? '';
-	if (code.length > 0 && code.length <= 8 && /[a-z]/iu.test(code)) {
-		return code;
-	}
-	return truncate(term.label, length);
+	return code.length > 0 && code.length <= 8 && /[a-z]/iu.test(code) ? code : undefined;
 }
 
 /** The full text of a term, for the `title` of a shortened rendering. */

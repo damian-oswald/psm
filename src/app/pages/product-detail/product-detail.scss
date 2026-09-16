@@ -145,7 +145,7 @@ h3 {
  */
 .detail-reset {
 	flex: 0 0 auto;
-	--mat-button-filled-container-color: #{ob.$ob-gray-dark};
+	--mat-button-filled-container-color: var(--app-control-active);
 	--mat-button-filled-label-text-color: #{ob.$ob-white};
 }
 

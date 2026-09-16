@@ -1,25 +1,36 @@
 import {ChangeDetectionStrategy, Component, computed, inject, signal} from '@angular/core';
-import {FormsModule} from '@angular/forms';
 import {MatButtonModule} from '@angular/material/button';
 import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {MatIconModule} from '@angular/material/icon';
-import {MatInputModule} from '@angular/material/input';
 import {MatTooltipModule} from '@angular/material/tooltip';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {ObAlertModule, ObNotificationService} from '@oblique/oblique';
 import {catchError, of} from 'rxjs';
-import {AdvancedCriteria, EMPTY_CRITERIA, Effect, buildAdvancedQuery, isEmpty} from '../../core/advanced-query';
+import {
+	AdvancedCriteria,
+	CombinableCriterion,
+	EMPTY_CRITERIA,
+	Effect,
+	buildAdvancedQuery
+} from '../../core/advanced-query';
 import {RegistryService} from '../../core/registry.service';
 import {SparqlService} from '../../core/sparql.service';
-import {Product, ProductKind, Term} from '../../core/models';
+import {Combination, Product, ProductKind, Term} from '../../core/models';
 import {ProductCardComponent} from '../../shared/product-card';
 import {TermDropdownComponent} from '../../shared/term-dropdown';
-import {TermSelectComponent} from '../../shared/term-select';
-import {TERM_CRITERIA, TermCriterion, matchesCriteria, valuesFor} from './criteria-match';
+import {TERM_CRITERIA, TermCriterion, isCombinable, isExclusion, matchesCriteria, valuesFor} from './criteria-match';
 
 const KINDS: ProductKind[] = ['RegularProduct', 'SalePermission', 'ParallelImport'];
 const EFFECTS: Effect[] = ['full', 'partial', 'side'];
+
+/**
+ * The waiting periods a question can be capped at, in days.
+ *
+ * The registry states waiting periods in days and in whole weeks; these are the values it
+ * uses most, weeks written out in days, so every cap lines up with periods that exist.
+ */
+const WAITING_PERIODS = [0, 3, 7, 14, 21, 28, 42, 56, 90];
 
 /**
  * Builds a SPARQL query out of things rather than words, runs it, and shows both.
@@ -34,17 +45,14 @@ const EFFECTS: Effect[] = ['full', 'partial', 'side'];
 	selector: 'app-advanced-query',
 	changeDetection: ChangeDetectionStrategy.OnPush,
 	imports: [
-		FormsModule,
 		MatButtonModule,
 		MatCheckboxModule,
 		MatFormFieldModule,
 		MatIconModule,
-		MatInputModule,
 		MatTooltipModule,
 		ObAlertModule,
 		ProductCardComponent,
 		TermDropdownComponent,
-		TermSelectComponent,
 		TranslatePipe
 	],
 	templateUrl: './advanced-query.html',
@@ -56,8 +64,6 @@ export class AdvancedQueryPage {
 	private readonly translate = inject(TranslateService);
 	private readonly notification = inject(ObNotificationService);
 
-	readonly effects = EFFECTS;
-
 	readonly criteria = signal<AdvancedCriteria>(EMPTY_CRITERIA);
 	readonly running = signal(false);
 	readonly error = signal<string | undefined>(undefined);
@@ -65,22 +71,28 @@ export class AdvancedQueryPage {
 	readonly showQuery = signal(false);
 
 	readonly query = computed(() => buildAdvancedQuery(this.criteria(), id => this.registry.aliases(id)));
-	readonly runnable = computed(() => !isEmpty(this.criteria()));
 	readonly guiLink = computed(() => this.sparql.guiLink(this.query()));
 
 	/**
-	 * The values each criterion can still take, counted over the products that satisfy all
-	 * the *other* criteria. Choosing from these cannot narrow a question to nothing, which
-	 * a free choice out of 1466 obligations very easily does.
+	 * The values each criterion can still take, with the number of products behind each.
+	 *
+	 * Choosing from these cannot narrow a question to nothing, which a free choice out of
+	 * 1466 obligations very easily does. A criterion whose values must all hold is counted
+	 * over the products that satisfy *everything*, itself included, so a number says what
+	 * would be left once that value is added. The rest are counted as if they were unset:
+	 * an alternative widens rather than narrows, a single choice replaces the one before,
+	 * and an exclusion needs to see what it could exclude.
 	 */
 	private readonly reachable = computed(() => {
 		const criteria = this.criteria();
 		const products = this.registry.products();
 		const counts = {} as Record<TermCriterion, Map<string, number>>;
 		for (const criterion of TERM_CRITERIA) {
+			const narrows =
+				isCombinable(criterion) && !isExclusion(criterion) && criteria.combinations[criterion] === 'and';
 			const tally = new Map<string, number>();
 			for (const product of products) {
-				if (!matchesCriteria(product, criteria, criterion)) {
+				if (!matchesCriteria(product, criteria, narrows ? undefined : criterion)) {
 					continue;
 				}
 				for (const value of valuesFor(product, criterion, criteria)) {
@@ -111,6 +123,27 @@ export class AdvancedQueryPage {
 		this.optionsFor('excludedObligations', this.registry.obligations())
 	);
 
+	/** Effects and waiting periods are not in the local index, so their options carry no counts. */
+	readonly effectOptions = computed<Term[]>(() => {
+		// Product type labels are recomputed on every language change; reading them ties these to it too.
+		this.registry.productTypes();
+		return EFFECTS.map(effect => ({id: effect, label: this.translate.instant(`product.effect.${effect}`) as string}));
+	});
+
+	readonly waitingPeriodOptions = computed<Term[]>(() => {
+		// As above: recomputed when the language changes.
+		this.registry.productTypes();
+		return WAITING_PERIODS.map(days => ({
+			id: String(days),
+			label: this.translate.instant('query.atMostDays', {count: days}) as string
+		}));
+	});
+
+	readonly waitingPeriodSelection = computed(() => {
+		const days = this.criteria().maxWaitingPeriodDays;
+		return days === undefined ? [] : [String(days)];
+	});
+
 	update<Key extends keyof AdvancedCriteria>(key: Key, value: AdvancedCriteria[Key]): void {
 		this.criteria.update(criteria => ({...criteria, [key]: value}));
 	}
@@ -120,14 +153,18 @@ export class AdvancedQueryPage {
 		this.update('kinds', ids.filter((id): id is ProductKind => (KINDS as string[]).includes(id)));
 	}
 
-	updateWaitingPeriod(value: string): void {
-		const parsed = Number(value);
-		this.update('maxWaitingPeriodDays', value.trim() && Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined);
+	updateEffects(ids: string[]): void {
+		this.update('effects', ids.filter((id): id is Effect => (EFFECTS as string[]).includes(id)));
 	}
 
-	toggleEffect(effect: Effect, checked: boolean): void {
-		const current = this.criteria().effects;
-		this.update('effects', checked ? [...current, effect] : current.filter(other => other !== effect));
+	updateWaitingPeriod(ids: string[]): void {
+		this.update('maxWaitingPeriodDays', ids.length ? Number(ids[0]) : undefined);
+	}
+
+	updateCombination(criterion: CombinableCriterion, combination: Combination | undefined): void {
+		if (combination) {
+			this.update('combinations', {...this.criteria().combinations, [criterion]: combination});
+		}
 	}
 
 	reset(): void {
@@ -136,8 +173,9 @@ export class AdvancedQueryPage {
 		this.error.set(undefined);
 	}
 
+	/** Runs whatever the form holds; with no criteria at all that is the whole registry. */
 	run(): void {
-		if (!this.runnable()) {
+		if (this.running()) {
 			return;
 		}
 		this.running.set(true);
